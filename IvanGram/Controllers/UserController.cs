@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using DAL;
 using IvanGram.Models;
 using IvanGram.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ namespace IvanGram.Controllers
         public async Task CreateUser (CreateUserModel model) => await _userService.CreateUser(model);
 
         [HttpGet]
+        [Authorize]
         public async Task<List<UserModel>> GetUsers () => await _userService.GetUsers();
 
     }
