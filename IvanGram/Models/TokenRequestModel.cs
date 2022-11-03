@@ -10,14 +10,4 @@
             Password = password;
         }
     }
-
-    public class RefreshTokenRequestModel
-    {
-        private string RefreshToken { get; set; }
-
-        public RefreshTokenRequestModel(string refreshToken)
-        {
-            RefreshToken = refreshToken;
-        }
-    }
 }

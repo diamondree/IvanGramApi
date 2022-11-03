@@ -17,7 +17,12 @@ namespace IvanGram.Controllers
         }
 
         [HttpPost]
-        public async Task<TokenModel> Token (TokenRequestModel model) => await _userService.GetTokens(model.Login, model.Password);
+        public async Task<TokenModel> GetTokens (TokenRequestModel model) 
+            => await _userService.GetTokens(model.Login, model.Password);
+
+        [HttpPost]
+        public async Task<TokenModel> GetTokensByRefreshToken(RefreshTokenRequestModel model)
+            => await _userService.GetTokensByRefreshToken(model.RefreshToken);
 
     }
 }

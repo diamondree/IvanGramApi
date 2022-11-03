@@ -28,5 +28,15 @@ namespace IvanGram.Controllers
         [Authorize]
         public async Task<List<UserModel>> GetUsers () => await _userService.GetUsers();
 
+        [HttpGet]
+        [Authorize]
+        public async Task<UserModel> GetCurrentUser()
+        {
+            var userIdStr = User.Claims.FirstOrDefault(x => x.Type == "Id")?.Value;
+            if (Guid.TryParse(userIdStr, out var userId))
+                return await _userService.GetUser(userId);
+            else
+                throw new Exception("You are not authorized");
+        }
     }
 }

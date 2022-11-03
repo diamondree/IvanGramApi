@@ -94,6 +94,32 @@ namespace IvanGram.Services
             return new TokenModel(encodedAcessToken, encodedRefreshToken);
         }
 
+        public async Task<TokenModel> GetTokensByRefreshToken(string refreshToken)
+        {
+            var validParams = new TokenValidationParameters
+            {
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                IssuerSigningKey = _config.SymmetricSecurityKey()
+            };
+
+            var principal = new JwtSecurityTokenHandler().ValidateToken(refreshToken, validParams, out var securityToken);
+
+            if (securityToken is not JwtSecurityToken jwtToken
+                || !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                throw new SecurityTokenException("Invalid token");
+            if (principal.Claims.FirstOrDefault(x => x.Type == "Id")?.Value is String userIdString
+                && Guid.TryParse(userIdString, out var userId))
+            {
+                var user = await GetUserById(userId);
+                return GenerateTokens(user);
+            }
+            else
+                throw new SecurityTokenException("Invalid token");
+        }
+
         public async Task<TokenModel> GetTokens(string login, string password)
         {
             var user = await GetUserByCredention(login, password);
