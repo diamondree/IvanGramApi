@@ -130,8 +130,10 @@ namespace IvanGram.Services
                 && Guid.TryParse(refreshIdString, out var refreshId))
             {
                 var session = await _session.GetSessionByRefreshToken(refreshId);
+
                 if (!session.IsActive)
-                    throw new Exception("Session does not exist");
+                    throw new Exception("Session does not active");
+
                 session.RefreshToken = Guid.NewGuid();
 
                 return GenerateTokens(session);

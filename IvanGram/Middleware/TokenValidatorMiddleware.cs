@@ -25,14 +25,16 @@ namespace IvanGram.Middleware
                     context.Response.StatusCode = 401;
                 }
             }
-            if (!IsOk)
+            if (IsOk)
                 await _requestDelegate(context);
         }
     }
 
     public static class TokenValidatorMiddlewareExtensions
     {
-        public static IApplicationBuilder UseTokenValidator(this IApplicationBuilder builder) 
-            => builder.UseMiddleware<TokenValidatorMiddleware>();
+        public static IApplicationBuilder UseTokenValidator(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<TokenValidatorMiddleware>();
+        }
     }
 }
