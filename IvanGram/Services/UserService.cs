@@ -17,11 +17,14 @@ namespace IvanGram.Services
         private readonly IMapper _mapper;
         private readonly DataContext _context;
         private readonly AuthConfig _config;
-        public UserService(IMapper mapper, DataContext context, IOptions<AuthConfig> config)
+        private readonly SessionService _session;
+
+        public UserService(IMapper mapper, DataContext context, IOptions<AuthConfig> config, SessionService session)
         {
             _mapper = mapper;
             _context = context;
             _config = config.Value;
+            _session = session;
         }
 
         public async Task<bool> CheckUserExists(string email)
@@ -68,8 +71,11 @@ namespace IvanGram.Services
             return _mapper.Map<UserModel>(user);
         }
 
-        private TokenModel GenerateTokens(DAL.Entities.User user)
+        private TokenModel GenerateTokens(DAL.Entities.UserSession userSession)
         {
+            if (userSession.User == null)
+                throw new Exception("You are wizard. This exception cant be throwed. Go and check your magic abilities!!! ^_^");
+
             var DTNow = DateTime.Now;
 
             var acessToken = new JwtSecurityToken(
@@ -78,23 +84,26 @@ namespace IvanGram.Services
                 notBefore: DTNow,
                 claims: new Claim[]
                 {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, user.Name),
-                    new Claim("Id", user.Id.ToString())
+                    new Claim(ClaimsIdentity.DefaultNameClaimType, userSession.User.Name),
+                    new Claim("SessionId", userSession.Id.ToString()),
+                    new Claim("Id", userSession.User.Id.ToString())
                 },
                 expires: DateTime.Now.AddMinutes(_config.LifeTime),
                 signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
                 );
+
             var encodedAcessToken = new JwtSecurityTokenHandler().WriteToken(acessToken);
 
             var refreshToken = new JwtSecurityToken(
                 notBefore: DTNow,
                 claims: new Claim[]
                 {
-                    new Claim("Id", user.Id.ToString())
+                    new Claim("RefreshToken", userSession.RefreshToken.ToString())
                 },
                 expires: DateTime.Now.AddHours(_config.LifeTime),
                 signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
                 );
+
             var encodedRefreshToken = new JwtSecurityTokenHandler().WriteToken(refreshToken);
 
             return new TokenModel(encodedAcessToken, encodedRefreshToken);
@@ -116,11 +125,16 @@ namespace IvanGram.Services
             if (securityToken is not JwtSecurityToken jwtToken
                 || !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 throw new SecurityTokenException("Invalid token");
-            if (principal.Claims.FirstOrDefault(x => x.Type == "Id")?.Value is String userIdString
-                && Guid.TryParse(userIdString, out var userId))
+
+            if (principal.Claims.FirstOrDefault(x => x.Type == "RefreshToken")?.Value is String refreshIdString
+                && Guid.TryParse(refreshIdString, out var refreshId))
             {
-                var user = await GetUserById(userId);
-                return GenerateTokens(user);
+                var session = await _session.GetSessionByRefreshToken(refreshId);
+                if (!session.IsActive)
+                    throw new Exception("Session does not exist");
+                session.RefreshToken = Guid.NewGuid();
+
+                return GenerateTokens(session);
             }
             else
                 throw new SecurityTokenException("Invalid token");
@@ -129,7 +143,18 @@ namespace IvanGram.Services
         public async Task<TokenModel> GetTokens(string login, string password)
         {
             var user = await GetUserByCredention(login, password);
-            return  GenerateTokens(user);
+
+            var userSession = await _context.UserSessions.AddAsync(new DAL.Entities.UserSession
+            {
+                User = user,
+                RefreshToken = Guid.NewGuid(),
+                CreatedAt = DateTime.UtcNow,
+                Id = Guid.NewGuid()
+            });
+
+            await _context.SaveChangesAsync();
+
+            return GenerateTokens(userSession.Entity);
         }
 
         public void Dispose()
