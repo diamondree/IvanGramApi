@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace IvanGram.Services
 {
-    public class UserService
+    public class UserService : IDisposable
     {
         private readonly IMapper _mapper;
         private readonly DataContext _context;
@@ -24,11 +24,17 @@ namespace IvanGram.Services
             _config = config.Value;
         }
 
-        public async Task CreateUser(CreateUserModel model)
+        public async Task<bool> CheckUserExists(string email)
         {
-            var dbUser = _mapper.Map<DAL.Entities.User>(model);
-            await _context.Users.AddAsync(dbUser);
+            return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
+        }
+
+        public async Task<Guid> CreateUser(CreateUserModel model)
+        {
+            var DBUser = _mapper.Map<DAL.Entities.User>(model);
+            var temp = await _context.Users.AddAsync(DBUser);
             await _context.SaveChangesAsync();
+            return temp.Entity.Id;
         }
 
         public async Task<List<UserModel>> GetUsers()
@@ -126,5 +132,9 @@ namespace IvanGram.Services
             return  GenerateTokens(user);
         }
 
+        public void Dispose()
+        {
+            _context.Dispose();
+        }
     }
 }
