@@ -23,9 +23,16 @@ namespace DAL
                 .Entity<User>()
                 .HasIndex(f => f.Email)
                 .IsUnique();
+
+            modelBuilder
+                .Entity<UserAvatar>()
+                .ToTable(nameof(Avatars));
         }
 
         public DbSet<User> Users => Set<User>();
         public DbSet<UserSession> UserSessions => Set<UserSession>();
+        public DbSet<Attach> Attaches => Set<Attach>();
+        public DbSet<UserAvatar> Avatars => Set<UserAvatar>();
+
     }
 }
