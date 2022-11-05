@@ -1,10 +1,5 @@
 ﻿using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DAL
 {
@@ -19,14 +14,16 @@ namespace DAL
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder
-                .Entity<User>()
+            modelBuilder.Entity<User>()
                 .HasIndex(f => f.Email)
                 .IsUnique();
 
-            modelBuilder
-                .Entity<UserAvatar>()
+            modelBuilder.Entity<UserAvatar>()
                 .ToTable(nameof(Avatars));
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Avatar)
+                .WithOne(a => a.User);
         }
 
         public DbSet<User> Users => Set<User>();

@@ -63,9 +63,6 @@ namespace IvanGram.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<long?>("AvatarId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTimeOffset>("BirthDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -82,9 +79,6 @@ namespace IvanGram.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AvatarId")
-                        .IsUnique();
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -121,6 +115,15 @@ namespace IvanGram.Migrations
                 {
                     b.HasBaseType("DAL.Entities.Attach");
 
+                    b.Property<long>("UserAvatarId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
                     b.ToTable("Avatars", (string)null);
                 });
 
@@ -133,15 +136,6 @@ namespace IvanGram.Migrations
                         .IsRequired();
 
                     b.Navigation("Author");
-                });
-
-            modelBuilder.Entity("DAL.Entities.User", b =>
-                {
-                    b.HasOne("DAL.Entities.UserAvatar", "Avatar")
-                        .WithOne("User")
-                        .HasForeignKey("DAL.Entities.User", "AvatarId");
-
-                    b.Navigation("Avatar");
                 });
 
             modelBuilder.Entity("DAL.Entities.UserSession", b =>
@@ -162,17 +156,21 @@ namespace IvanGram.Migrations
                         .HasForeignKey("DAL.Entities.UserAvatar", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("DAL.Entities.User", "User")
+                        .WithOne("Avatar")
+                        .HasForeignKey("DAL.Entities.UserAvatar", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>
                 {
-                    b.Navigation("Sessions");
-                });
+                    b.Navigation("Avatar");
 
-            modelBuilder.Entity("DAL.Entities.UserAvatar", b =>
-                {
-                    b.Navigation("User")
-                        .IsRequired();
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }
