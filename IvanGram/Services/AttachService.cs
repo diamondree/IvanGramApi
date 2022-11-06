@@ -1,4 +1,6 @@
-﻿using DAL;
+﻿using AutoMapper;
+using DAL;
+using DAL.Entities;
 using IvanGram.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,10 +9,12 @@ namespace IvanGram.Services
     public class AttachService : IDisposable
     {
         private readonly DataContext _context;
+        private readonly IMapper _mapper;
 
-        public AttachService(DataContext context)
+        public AttachService(DataContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<MetaDataModel> UploadAttach(IFormFile file)
@@ -59,6 +63,8 @@ namespace IvanGram.Services
             }
             return res;
         }
+
+        public async Task<AttachModel> GetAvtarFromUser(User user) => _mapper.Map<AttachModel>(user.Avatar);
 
         public void Dispose()
         {

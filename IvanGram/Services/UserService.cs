@@ -19,13 +19,15 @@ namespace IvanGram.Services
         private readonly DataContext _context;
         private readonly AuthConfig _config;
         private readonly SessionService _session;
+        private readonly AttachService _attachService;
 
-        public UserService(IMapper mapper, DataContext context, IOptions<AuthConfig> config, SessionService session)
+        public UserService(IMapper mapper, DataContext context, IOptions<AuthConfig> config, SessionService session, AttachService attachService)
         {
             _mapper = mapper;
             _context = context;
             _config = config.Value;
             _session = session;
+            _attachService = attachService;
         }
 
         private async Task<bool> CheckUserExists(string email)
@@ -62,7 +64,7 @@ namespace IvanGram.Services
 
         public async Task<User> GetUserById(Guid id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x=>x.Id == id);
+            var user = await _context.Users.Include(x=>x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
                 throw new Exception("User not found");
             return user;
@@ -180,7 +182,12 @@ namespace IvanGram.Services
             }
         }
 
-
+        public async Task<AttachModel> GetUserAvatar (Guid userId)
+        {
+            var user = await GetUserById(userId);
+            var attach = await _attachService.GetAvtarFromUser(user);
+            return attach;
+        }
 
         public void Dispose()
         {

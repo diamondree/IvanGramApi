@@ -13,6 +13,7 @@ namespace IvanGram
                 .ForMember(dest => dest.BirthDate, opt => opt.MapFrom(src => src.BirthDate.UtcDateTime))
                 ;
             CreateMap<DAL.Entities.User, Models.UserModel>();
+            CreateMap<DAL.Entities.UserAvatar, Models.AttachModel>();
         }
     }
 }

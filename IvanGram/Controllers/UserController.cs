@@ -64,5 +64,13 @@ namespace IvanGram.Controllers
             else
                 throw new Exception("you are not authorized");
         }
+
+        [HttpGet]
+        public async Task<FileResult> GetUserAvatar(Guid userId)
+        {
+            var attach = await _userService.GetUserAvatar(userId);
+
+            return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
+        }
     }
 }
