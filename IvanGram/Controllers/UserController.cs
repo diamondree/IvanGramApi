@@ -22,12 +22,7 @@ namespace IvanGram.Controllers
         }
 
         [HttpPost]
-        public async Task CreateUser(CreateUserModel model)
-        {
-            if (await _userService.CheckUserExists(model.Email))
-                throw new Exception("User exists");
-            await _userService.CreateUser(model);
-        }
+        public async Task CreateUser(CreateUserModel model) => await _userService.CreateUser(model);
 
         [HttpGet]
         [Authorize]
@@ -42,6 +37,32 @@ namespace IvanGram.Controllers
                 return await _userService.GetUser(userId);
             else
                 throw new Exception("You are not authorized");
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task AddAvatarToUser(MetaDataModel model)
+        {
+            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "Id")?.Value;
+            if (Guid.TryParse(userIdString, out var userId))
+            {
+                var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
+                if (!tempFi.Exists)
+                    throw new Exception("file not found");
+                else
+                {
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
+                    var destFi = new FileInfo(path);
+                    if (destFi.Directory != null && !destFi.Directory.Exists)
+                        destFi.Directory.Create();
+
+                    System.IO.File.Copy(tempFi.FullName, path, true);
+
+                    await _userService.AddAvatarToUser(userId, model, path);
+                }
+            }
+            else
+                throw new Exception("you are not authorized");
         }
     }
 }

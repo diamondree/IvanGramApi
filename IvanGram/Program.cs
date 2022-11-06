@@ -65,6 +65,8 @@ internal class Program
 
         builder.Services.AddScoped<SessionService>();
 
+        builder.Services.AddTransient<AttachService>();
+
         builder.Services.AddAuthentication(opt =>
         {
             opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;

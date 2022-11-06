@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using Common;
 using DAL;
+using DAL.Entities;
 using IvanGram.Configs;
 using IvanGram.Models;
 using Microsoft.EntityFrameworkCore;
@@ -27,14 +28,16 @@ namespace IvanGram.Services
             _session = session;
         }
 
-        public async Task<bool> CheckUserExists(string email)
+        private async Task<bool> CheckUserExists(string email)
         {
             return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
         public async Task<Guid> CreateUser(CreateUserModel model)
         {
-            var DBUser = _mapper.Map<DAL.Entities.User>(model);
+            if (await CheckUserExists(model.Email))
+                throw new Exception("User exists");
+            var DBUser = _mapper.Map<User>(model);
             var temp = await _context.Users.AddAsync(DBUser);
             await _context.SaveChangesAsync();
             return temp.Entity.Id;
@@ -45,7 +48,7 @@ namespace IvanGram.Services
             return await _context.Users.AsNoTracking().ProjectTo<UserModel>(_mapper.ConfigurationProvider).ToListAsync();
         }
 
-        public async Task<DAL.Entities.User> GetUserByCredention (string login, string password)
+        public async Task<User> GetUserByCredention (string login, string password)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x=>x.Email.ToLower() == login.ToLower());
             if (user == null)
@@ -57,7 +60,7 @@ namespace IvanGram.Services
             return user;
         }
 
-        public async Task<DAL.Entities.User> GetUserById(Guid id)
+        public async Task<User> GetUserById(Guid id)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x=>x.Id == id);
             if (user == null)
@@ -71,7 +74,7 @@ namespace IvanGram.Services
             return _mapper.Map<UserModel>(user);
         }
 
-        private TokenModel GenerateTokens(DAL.Entities.UserSession userSession)
+        private TokenModel GenerateTokens(UserSession userSession)
         {
             if (userSession.User == null)
                 throw new Exception("You are wizard. This exception cant be throwed. Go and check your magic abilities!!! ^_^");
@@ -158,6 +161,26 @@ namespace IvanGram.Services
 
             return GenerateTokens(userSession.Entity);
         }
+
+        public async Task AddAvatarToUser(Guid UserId, MetaDataModel meta, string FilePath)
+        {
+            var user = await _context.Users.Include(x=>x.Avatar).FirstOrDefaultAsync(x => x.Id == UserId);
+            if (user != null )
+            {
+                var avatar = new UserAvatar
+                {
+                    Author = user,
+                    MimeType = meta.MimeType,
+                    FilePath = FilePath,
+                    Name = meta.Name,
+                    Size = meta.Size
+                };
+                user.Avatar = avatar;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+
 
         public void Dispose()
         {
