@@ -30,6 +30,8 @@ namespace DAL
         public DbSet<UserSession> UserSessions => Set<UserSession>();
         public DbSet<Attach> Attaches => Set<Attach>();
         public DbSet<UserAvatar> Avatars => Set<UserAvatar>();
-
+        public DbSet<Post> Posts => Set<Post>();
+        public DbSet<PostComments> PostComments => Set<PostComments>();
+        public DbSet<PostFiles> PostFiles => Set<PostFiles>();
     }
 }
