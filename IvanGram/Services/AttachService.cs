@@ -79,7 +79,7 @@ namespace IvanGram.Services
                 if (destFi.Directory != null && !destFi.Directory.Exists)
                     destFi.Directory.Create();
 
-                System.IO.File.Copy(tempFi.FullName, path, true);
+                File.Copy(tempFi.FullName, path, true);
 
                 return path;
             }

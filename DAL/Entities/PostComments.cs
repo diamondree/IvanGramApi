@@ -9,10 +9,10 @@ namespace DAL.Entities
     public class PostComments
     {
         public Guid Id { get; set; }
-        public string Text { get; set; }
+        public string Text { get; set; } = null!;
         public DateTimeOffset CreatedAt { get; set; }
 
-        public virtual Post Post { get; set; }
-        public virtual User Author { get; set; }
+        public virtual Post Post { get; set; } = null!;
+        public virtual User Author { get; set; } = null!;
     }
 }

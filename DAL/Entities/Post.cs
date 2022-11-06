@@ -12,8 +12,8 @@ namespace DAL.Entities
         public DateTimeOffset CreatedAt { get; set; }
         public string? Description { get; set; }
 
-        public virtual User Author { get; set; }
-        public virtual ICollection<PostFiles> Files { get; set; }
+        public virtual User Author { get; set; } = null!;
+        public virtual ICollection<PostFiles> Files { get; set; } = null!;
         public virtual ICollection<PostComments>? Comments { get; set; }
     }
 }

@@ -24,6 +24,9 @@ namespace DAL
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Avatar)
                 .WithOne(a => a.User);
+
+            modelBuilder.Entity<PostFiles>()
+                .ToTable(nameof(PostFiles));
         }
 
         public DbSet<User> Users => Set<User>();

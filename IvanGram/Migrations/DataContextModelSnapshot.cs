@@ -52,7 +52,7 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Attaches");
+                    b.ToTable("Attaches", (string)null);
 
                     b.UseTptMappingStrategy();
                 });
@@ -76,7 +76,7 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Posts", (string)null);
                 });
 
             modelBuilder.Entity("DAL.Entities.PostComments", b =>
@@ -104,7 +104,7 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostComments");
+                    b.ToTable("PostComments", (string)null);
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>
@@ -133,7 +133,7 @@ namespace IvanGram.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("DAL.Entities.UserSession", b =>
@@ -158,7 +158,7 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSessions");
+                    b.ToTable("UserSessions", (string)null);
                 });
 
             modelBuilder.Entity("DAL.Entities.PostFiles", b =>
@@ -170,7 +170,7 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostFiles");
+                    b.ToTable("PostFiles", (string)null);
                 });
 
             modelBuilder.Entity("DAL.Entities.UserAvatar", b =>

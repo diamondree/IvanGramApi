@@ -79,20 +79,7 @@ namespace IvanGram.Controllers
             var userIdString = User.Claims.FirstOrDefault(x => x.Type == "Id")?.Value;
             if (Guid.TryParse(userIdString, out var userId))
             {
-                var addPostRequestModel = new AddPostRequestModel { UserId = userId, PostId = Guid.NewGuid() };
-                if (model.Description != null)
-                    addPostRequestModel.Descriprion = model.Description;
-                foreach (var file in model.Files)
-                {
-                    _attachService.CopyFileToAttaches(file);
-                    addPostRequestModel.Files.Add(file);
-                }
-                
-                if (addPostRequestModel.Files != null)
-                    await _userService.CreateUserPost(addPostRequestModel);
-                else
-                    throw new Exception("Files have not been uploaded");
-
+                await _userService.CreateUserPost(model, userId);
             }
             else
                 throw new Exception("You are not authorized");

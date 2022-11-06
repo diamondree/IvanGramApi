@@ -189,54 +189,48 @@ namespace IvanGram.Services
             return attach;
         }
 
-        /*private async Task<ICollection<PostFiles>> CollectPostFiles (AddPostRequestModel model, User user)
+        public async Task CreateUserPost(AddPostModel model, Guid UserId)
         {
-            var postFiles = new List<PostFiles>();
-            foreach (var file in model.Files)
-            {
-                var postFile = new PostFiles
-                {
-                    PostId = model.PostId,
-                    Name = file.Name,
-                    MimeType = file.MimeType,
-                    FilePath = file.,
-                    Size = file.Size,
-                    Author = user,
-                }
-            }
-        }*/
+            var user = await _context.Users.Include(x=>x.Posts).FirstOrDefaultAsync(x => x.Id == UserId);
 
-        public async Task CreateUserPost(AddPostRequestModel model)
-        {
-            var user = await _context.Users.Include(x=>x.Posts).FirstOrDefaultAsync(x => x.Id == model.UserId);
             if (user != null)
             {
+                var tempPostFileList = new List<PostFiles>();
+                if (model.Files.Count > 0)
+                {
+                    
+                    foreach (var file in model.Files)
+                    {
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "attaches", file.TempId.ToString());
+
+                        var postFile = new PostFiles
+                        {
+                            Name = file.Name,
+                            MimeType = file.MimeType,
+                            FilePath = filePath,
+                            Size = file.Size,
+                            Author = user
+                        };
+                        tempPostFileList.Add(postFile);
+                    }
+                }
+                else
+                {
+                    throw new Exception("File not found");
+                }
                 var post = new Post
                 {
                     Author = user,
-                    Id = model.PostId,
-                    CreatedAt = DateTime.Now,
-                    Description = model.Descriprion
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    Description = model.Description,
+                    Files = tempPostFileList
                 };
 
-                await _context.AddAsync(post);
+                await _context.Posts.AddAsync(post);
 
-                foreach (var file in model.Files)
-                {
-                    var filePath = _attachService.CopyFileToAttaches(file);
-
-                    var postFile = new PostFiles
-                    {
-                        PostId = model.PostId,
-                        Name = file.Name,
-                        MimeType = file.MimeType,
-                        FilePath = filePath,
-                        Size = file.Size,
-                        Author = user
-                    };
-
-                    await _context.AddAsync(postFile);
-                }
+                
+                await _context.SaveChangesAsync();
             }
         }
 

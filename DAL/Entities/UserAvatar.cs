@@ -6,7 +6,7 @@ namespace DAL.Entities
     public class UserAvatar : Attach
     { 
         public Guid UserId { get; set; }
-        public virtual User User { get; set; }
+        public virtual User User { get; set; } = null!;
 
     }
 }
