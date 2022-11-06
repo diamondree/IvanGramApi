@@ -164,18 +164,18 @@ namespace IvanGram.Services
             return GenerateTokens(userSession.Entity);
         }
 
-        public async Task AddAvatarToUser(Guid UserId, MetaDataModel meta, string FilePath)
+        public async Task AddAvatarToUser(AddUserAvatarModel model)
         {
-            var user = await _context.Users.Include(x=>x.Avatar).FirstOrDefaultAsync(x => x.Id == UserId);
+            var user = await _context.Users.Include(x=>x.Avatar).FirstOrDefaultAsync(x => x.Id == model.UserId);
             if (user != null )
             {
                 var avatar = new UserAvatar
                 {
                     Author = user,
-                    MimeType = meta.MimeType,
-                    FilePath = FilePath,
-                    Name = meta.Name,
-                    Size = meta.Size
+                    MimeType = model.MetaDataModel.MimeType,
+                    FilePath = model.FilePath,
+                    Name = model.MetaDataModel.Name,
+                    Size = model.MetaDataModel.Size
                 };
                 user.Avatar = avatar;
                 await _context.SaveChangesAsync();
@@ -187,6 +187,57 @@ namespace IvanGram.Services
             var user = await GetUserById(userId);
             var attach = await _attachService.GetAvtarFromUser(user);
             return attach;
+        }
+
+        /*private async Task<ICollection<PostFiles>> CollectPostFiles (AddPostRequestModel model, User user)
+        {
+            var postFiles = new List<PostFiles>();
+            foreach (var file in model.Files)
+            {
+                var postFile = new PostFiles
+                {
+                    PostId = model.PostId,
+                    Name = file.Name,
+                    MimeType = file.MimeType,
+                    FilePath = file.,
+                    Size = file.Size,
+                    Author = user,
+                }
+            }
+        }*/
+
+        public async Task CreateUserPost(AddPostRequestModel model)
+        {
+            var user = await _context.Users.Include(x=>x.Posts).FirstOrDefaultAsync(x => x.Id == model.UserId);
+            if (user != null)
+            {
+                var post = new Post
+                {
+                    Author = user,
+                    Id = model.PostId,
+                    CreatedAt = DateTime.Now,
+                    Description = model.Descriprion
+                };
+
+                await _context.AddAsync(post);
+
+                foreach (var file in model.Files)
+                {
+                    var filePath = _attachService.CopyFileToAttaches(file);
+
+                    var postFile = new PostFiles
+                    {
+                        PostId = model.PostId,
+                        Name = file.Name,
+                        MimeType = file.MimeType,
+                        FilePath = filePath,
+                        Size = file.Size,
+                        Author = user
+                    };
+
+                    await _context.AddAsync(postFile);
+                }
+            }
         }
 
         public void Dispose()

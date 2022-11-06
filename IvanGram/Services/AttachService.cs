@@ -3,6 +3,7 @@ using DAL;
 using DAL.Entities;
 using IvanGram.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace IvanGram.Services
 {
@@ -65,6 +66,24 @@ namespace IvanGram.Services
         }
 
         public async Task<AttachModel> GetAvtarFromUser(User user) => _mapper.Map<AttachModel>(user.Avatar);
+
+        public string CopyFileToAttaches(MetaDataModel model)
+        {
+            var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
+            if (!tempFi.Exists)
+                throw new Exception("file not found");
+            else
+            {
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
+                var destFi = new FileInfo(path);
+                if (destFi.Directory != null && !destFi.Directory.Exists)
+                    destFi.Directory.Create();
+
+                System.IO.File.Copy(tempFi.FullName, path, true);
+
+                return path;
+            }
+        }
 
         public void Dispose()
         {

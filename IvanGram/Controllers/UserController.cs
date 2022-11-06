@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Validations;
 
 namespace IvanGram.Controllers
 {
@@ -15,10 +16,12 @@ namespace IvanGram.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly AttachService _attachService;
 
-        public UserController (UserService userService)
+        public UserController(UserService userService, AttachService attachService)
         {
             _userService = userService;
+            _attachService = attachService;
         }
 
         [HttpPost]
@@ -26,7 +29,7 @@ namespace IvanGram.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<List<UserModel>> GetUsers () => await _userService.GetUsers();
+        public async Task<List<UserModel>> GetUsers() => await _userService.GetUsers();
 
         [HttpGet]
         [Authorize]
@@ -46,20 +49,16 @@ namespace IvanGram.Controllers
             var userIdString = User.Claims.FirstOrDefault(x => x.Type == "Id")?.Value;
             if (Guid.TryParse(userIdString, out var userId))
             {
-                var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
-                if (!tempFi.Exists)
-                    throw new Exception("file not found");
-                else
-                {
-                    var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
-                    var destFi = new FileInfo(path);
-                    if (destFi.Directory != null && !destFi.Directory.Exists)
-                        destFi.Directory.Create();
+                var path = _attachService.CopyFileToAttaches(model);
 
-                    System.IO.File.Copy(tempFi.FullName, path, true);
+                    var addUserAvatarModel = new AddUserAvatarModel
+                    {
+                        MetaDataModel = model,
+                        UserId = userId,
+                        FilePath = path
+                    };
 
-                    await _userService.AddAvatarToUser(userId, model, path);
-                }
+                    await _userService.AddAvatarToUser(addUserAvatarModel);
             }
             else
                 throw new Exception("you are not authorized");
@@ -71,6 +70,32 @@ namespace IvanGram.Controllers
             var attach = await _userService.GetUserAvatar(userId);
 
             return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task AddPostToUser(AddPostModel model)
+        {
+            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "Id")?.Value;
+            if (Guid.TryParse(userIdString, out var userId))
+            {
+                var addPostRequestModel = new AddPostRequestModel { UserId = userId, PostId = Guid.NewGuid() };
+                if (model.Description != null)
+                    addPostRequestModel.Descriprion = model.Description;
+                foreach (var file in model.Files)
+                {
+                    _attachService.CopyFileToAttaches(file);
+                    addPostRequestModel.Files.Add(file);
+                }
+                
+                if (addPostRequestModel.Files != null)
+                    await _userService.CreateUserPost(addPostRequestModel);
+                else
+                    throw new Exception("Files have not been uploaded");
+
+            }
+            else
+                throw new Exception("You are not authorized");
         }
     }
 }
