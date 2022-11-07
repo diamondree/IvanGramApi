@@ -185,8 +185,13 @@ namespace IvanGram.Services
         public async Task<AttachModel> GetUserAvatar (Guid userId)
         {
             var user = await GetUserById(userId);
-            var attach = await _attachService.GetAvtarFromUser(user);
-            return attach;
+            if (user.Avatar == null)
+                throw new Exception("User does not have avatar");
+            else
+            {
+                var attach = await _attachService.GetAvtarFromUser(user);
+                return attach;
+            }
         }
 
         public async Task CreateUserPost(AddPostModel model, Guid UserId)

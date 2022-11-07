@@ -67,6 +67,17 @@ namespace IvanGram.Services
 
         public async Task<AttachModel> GetAvtarFromUser(User user) => _mapper.Map<AttachModel>(user.Avatar);
 
+        public async Task<List<AttachModel>> GetFilesFromPost(Post post)
+        {
+            var res = new List<AttachModel>();
+            foreach ( var file in post.Files)
+            {
+                AttachModel fileAttach = _mapper.Map<AttachModel>(file);
+                res.Add(fileAttach);
+            }
+            return res;
+        }
+
         public string CopyFileToAttaches(MetaDataModel model)
         {
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));

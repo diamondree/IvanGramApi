@@ -63,9 +63,11 @@ internal class Program
 
         builder.Services.AddScoped<UserService>();
 
-        builder.Services.AddScoped<SessionService>();
+        builder.Services.AddTransient<SessionService>();
 
         builder.Services.AddTransient<AttachService>();
+
+        builder.Services.AddScoped<PostService>();
 
         builder.Services.AddAuthentication(opt =>
         {
