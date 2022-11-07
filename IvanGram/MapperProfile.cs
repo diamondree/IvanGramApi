@@ -14,8 +14,7 @@ namespace IvanGram
                 ;
             CreateMap<DAL.Entities.User, Models.UserModel>();
             CreateMap<DAL.Entities.UserAvatar, Models.AttachModel>();
-            CreateMap<DAL.Entities.Post, Models.PostModel>()
-                ;
+            CreateMap<DAL.Entities.PostFiles, Models.AttachModel>();
         }
     }
 }

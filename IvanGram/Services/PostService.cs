@@ -19,13 +19,25 @@ namespace IvanGram.Services
 
         public async Task<PostModel> GetPostByPostId(Guid postId)
         {
-            var post = await _context.Posts.Include(x=>x.Files).Include(x=>x.Comments).Include(x=>x.Author).FirstOrDefaultAsync(x=>x.Id == postId);
+            var post = await _context.Posts.Include(x=>x.Files).Include(x=>x.Author).Include(x=>x.Comments).FirstOrDefaultAsync(x=>x.Id == postId);
             if (post == null)
                 throw new Exception("Post not found");
-            var attachList = new List<AttachModel>();
-            attachList = await _attachService.GetFilesFromPost(post);
-            var postModel = new PostModel(postId, post.Author.Name, attachList, post.CreatedAt, post.Description);
-            return postModel;
+            var attachModelsList = await _attachService.GetPostAttaches(post);
+            var tempList = new List<long>();
+            foreach (var attachModel in attachModelsList)
+            {
+                tempList.Add(attachModel.Id);
+            }
+            var res = new PostModel
+            {
+                Id = post.Id,
+                CreatedBy = post.Author.Name,
+                CreatedAt = post.CreatedAt,
+                Description = post.Description,
+                AttachesId = tempList,
+            };
+            
+            return res;
         }
 
         public void Dispose()
