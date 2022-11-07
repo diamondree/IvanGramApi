@@ -206,7 +206,7 @@ namespace IvanGram.Services
                     
                     foreach (var file in model.Files)
                     {
-                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "attaches", file.TempId.ToString());
+                        var filePath = _attachService.CopyFileToAttaches(file);
 
                         var postFile = new PostFiles
                         {
