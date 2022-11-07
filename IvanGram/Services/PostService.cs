@@ -1,4 +1,5 @@
-﻿using DAL;
+﻿using AutoMapper;
+using DAL;
 using DAL.Entities;
 using IvanGram.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,16 +11,18 @@ namespace IvanGram.Services
     {
         private readonly DataContext _context;
         private readonly AttachService _attachService;
+        private readonly IMapper _mapper;
 
-        public PostService (DataContext context, AttachService attachService)
+        public PostService (DataContext context, AttachService attachService, IMapper mapper)
         {
             _context = context;
             _attachService = attachService;
+            _mapper = mapper;
         }
 
         public async Task<PostModel> GetPostByPostId(Guid postId)
         {
-            var post = await _context.Posts.Include(x=>x.Files).Include(x=>x.Author).Include(x=>x.Comments).FirstOrDefaultAsync(x=>x.Id == postId);
+            var post = await _context.Posts.Include(x=>x.Files).Include(x=>x.Author).FirstOrDefaultAsync(x=>x.Id == postId);
             if (post == null)
                 throw new Exception("Post not found");
             var attachModelsList = await _attachService.GetPostAttaches(post);
@@ -58,6 +61,23 @@ namespace IvanGram.Services
             };
             await _context.AddAsync(comm);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<PostCommentModel>> GetPostComments (Guid postId)
+        {
+            var post = await _context.Posts.Include(x => x.Comments).ThenInclude(x=>x.Author).FirstOrDefaultAsync(x=>x.Id == postId);
+            if (post == null)
+                throw new Exception("Post does not exists");
+            if (post.Comments == null)
+                throw new Exception("Post comments not found");
+            if (post.Comments.Count <= 0)
+                throw new Exception("There are not any comments in this post");
+            var comments = new List<PostCommentModel>();
+            foreach (var comment in post.Comments)
+            {
+                comments.Add(_mapper.Map<PostCommentModel>(comment));
+            }
+            return comments;
         }
 
         public void Dispose()

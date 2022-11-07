@@ -1,4 +1,5 @@
-﻿using IvanGram.Models;
+﻿using DAL.Entities;
+using IvanGram.Models;
 using IvanGram.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -18,10 +19,7 @@ namespace IvanGram.Controllers
         }
 
         [HttpGet]
-        public async Task<PostModel> GetPostByPostId(Guid PostId)
-        {
-            return await _postService.GetPostByPostId(PostId);
-        }
+        public async Task<PostModel> GetPostByPostId(Guid PostId) => await _postService.GetPostByPostId(PostId);
 
         [HttpPost]
         [Authorize]
@@ -35,5 +33,8 @@ namespace IvanGram.Controllers
             else
                 throw new Exception("You are not authorized");
         }
+
+        [HttpGet]
+        public async Task<List<PostCommentModel>> GetPostComments(Guid PostId) => await _postService.GetPostComments(PostId);
     }
 }
