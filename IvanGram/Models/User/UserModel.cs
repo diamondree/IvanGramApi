@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace IvanGram.Models
+namespace IvanGram.Models.User
 {
     public class UserModel
     {

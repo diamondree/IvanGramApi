@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IvanGram.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221105095426_AddedAttachesAndUserAvatars")]
-    partial class AddedAttachesAndUserAvatars
+    [Migration("20221110175248_AddedUserAvatarPostPostFilePostComment")]
+    partial class AddedUserAvatarPostPostFilePostComment
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,9 @@ namespace IvanGram.Migrations
 
             modelBuilder.Entity("DAL.Entities.Attach", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
@@ -58,6 +56,56 @@ namespace IvanGram.Migrations
                     b.ToTable("Attaches");
 
                     b.UseTptMappingStrategy();
+                });
+
+            modelBuilder.Entity("DAL.Entities.Post", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("DAL.Entities.PostComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("PostComments");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>
@@ -114,12 +162,21 @@ namespace IvanGram.Migrations
                     b.ToTable("UserSessions");
                 });
 
-            modelBuilder.Entity("DAL.Entities.UserAvatar", b =>
+            modelBuilder.Entity("DAL.Entities.PostFile", b =>
                 {
                     b.HasBaseType("DAL.Entities.Attach");
 
-                    b.Property<long>("UserAvatarId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("PostFiles", (string)null);
+                });
+
+            modelBuilder.Entity("DAL.Entities.UserAvatar", b =>
+                {
+                    b.HasBaseType("DAL.Entities.Attach");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -141,6 +198,36 @@ namespace IvanGram.Migrations
                     b.Navigation("Author");
                 });
 
+            modelBuilder.Entity("DAL.Entities.Post", b =>
+                {
+                    b.HasOne("DAL.Entities.User", "Author")
+                        .WithMany("Posts")
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("DAL.Entities.PostComment", b =>
+                {
+                    b.HasOne("DAL.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Entities.Post", "Post")
+                        .WithMany("Comments")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Post");
+                });
+
             modelBuilder.Entity("DAL.Entities.UserSession", b =>
                 {
                     b.HasOne("DAL.Entities.User", "User")
@@ -150,6 +237,23 @@ namespace IvanGram.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DAL.Entities.PostFile", b =>
+                {
+                    b.HasOne("DAL.Entities.Attach", null)
+                        .WithOne()
+                        .HasForeignKey("DAL.Entities.PostFile", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Entities.Post", "Post")
+                        .WithMany("Files")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("DAL.Entities.UserAvatar", b =>
@@ -169,9 +273,18 @@ namespace IvanGram.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DAL.Entities.Post", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Files");
+                });
+
             modelBuilder.Entity("DAL.Entities.User", b =>
                 {
                     b.Navigation("Avatar");
+
+                    b.Navigation("Posts");
 
                     b.Navigation("Sessions");
                 });

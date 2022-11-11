@@ -1,4 +1,7 @@
-﻿using IvanGram.Services;
+﻿using Common.Consts;
+using Common.Extensions;
+using DAL.Entities;
+using IvanGram.Services;
 
 namespace IvanGram.Middleware
 {
@@ -14,8 +17,8 @@ namespace IvanGram.Middleware
         public async Task InvokeAsync(HttpContext context, SessionService sessionService)
         {
             var IsOk = true;
-            var SessionIdString = context.User.Claims.FirstOrDefault(x => x.Type == "SessionId")?.Value;
-            if (Guid.TryParse(SessionIdString, out var SessionId))
+            var SessionId = context.User.GetClaimValue<Guid>(ClaimNames.SessionId);
+            if (SessionId != default)
             {
                 var session = await sessionService.GetSessionById(SessionId);
                 if (!session.IsActive)

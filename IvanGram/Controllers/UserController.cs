@@ -1,7 +1,11 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Common.Consts;
+using Common.Extensions;
 using DAL;
 using IvanGram.Models;
+using IvanGram.Models.Post;
+using IvanGram.Models.User;
 using IvanGram.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -35,8 +39,8 @@ namespace IvanGram.Controllers
         [Authorize]
         public async Task<UserModel> GetCurrentUser()
         {
-            var userIdStr = User.Claims.FirstOrDefault(x => x.Type == "Id")?.Value;
-            if (Guid.TryParse(userIdStr, out var userId))
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
                 return await _userService.GetUser(userId);
             else
                 throw new Exception("You are not authorized");
@@ -46,8 +50,8 @@ namespace IvanGram.Controllers
         [Authorize]
         public async Task AddAvatarToUser(MetaDataModel model)
         {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "Id")?.Value;
-            if (Guid.TryParse(userIdString, out var userId))
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
             {
                 var path = _attachService.CopyFileToAttaches(model);
 
@@ -76,8 +80,8 @@ namespace IvanGram.Controllers
         [Authorize]
         public async Task AddPostToUser(AddPostModel model)
         {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "Id")?.Value;
-            if (Guid.TryParse(userIdString, out var userId))
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
             {
                 await _userService.CreateUserPost(model, userId);
             }

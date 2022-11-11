@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using DAL;
 using DAL.Entities;
+using IvanGram.Controllers;
 using IvanGram.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc;
 
 namespace IvanGram.Services
 {
@@ -65,19 +67,29 @@ namespace IvanGram.Services
             return res;
         }
 
-        public async Task<AttachModel> GetAvtarFromUser(User user) => _mapper.Map<AttachModel>(user.Avatar);
-
         public async Task<List<AttachModel>> GetPostAttaches(Post post) => _mapper.Map<List<AttachModel>>(post.Files);
+
+        public async Task<AttachModel> GetAttachById(Guid id)
+        {
+            var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.Id == id);
+            if (attach == null)
+                throw new Exception("File not found");
+            var attachModel = new AttachModel();
+            attachModel = _mapper.Map<AttachModel>(attach);
+            return attachModel;
+        }
 
         public string CopyFileToAttaches(MetaDataModel model)
         {
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
+
             if (!tempFi.Exists)
                 throw new Exception("file not found");
             else
             {
                 var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
                 var destFi = new FileInfo(path);
+                
                 if (destFi.Directory != null && !destFi.Directory.Exists)
                     destFi.Directory.Create();
 

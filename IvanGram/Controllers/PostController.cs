@@ -1,5 +1,8 @@
-﻿using DAL.Entities;
-using IvanGram.Models;
+﻿using Common.Consts;
+using Common.Extensions;
+using DAL.Entities;
+using IvanGram.Models.Post;
+using IvanGram.Models.PostComment;
 using IvanGram.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +19,25 @@ namespace IvanGram.Controllers
         public PostController(PostService postService)
         {
             _postService = postService;
+            _postService.SetLinkGenerator(_linkContentGenerator, _linkAvatarGenerator);
         }
+
+        private string? _linkAvatarGenerator(Guid userId)
+        {
+            return Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
+            {
+                userId,
+            });
+        }
+        private string? _linkContentGenerator(Guid postContentId)
+        {
+            return Url.ControllerAction<AttachController>(nameof(AttachController.GetPostContent), new
+            {
+                postContentId,
+            });
+        }
+
+
 
         [HttpGet]
         public async Task<PostModel> GetPostByPostId(Guid PostId) => await _postService.GetPostByPostId(PostId);
@@ -25,8 +46,8 @@ namespace IvanGram.Controllers
         [Authorize]
         public async Task AddCommentToPost(CreatePostCommentModel model)
         {
-            var userIdStr = User.Claims.FirstOrDefault(x=>x.Type == "Id")?.Value;
-            if (Guid.TryParse(userIdStr, out var userId))
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
             {
                 await _postService.CreatePostComment(userId, model);
             }
@@ -35,6 +56,6 @@ namespace IvanGram.Controllers
         }
 
         [HttpGet]
-        public async Task<List<PostCommentModel>> GetPostComments(Guid PostId) => await _postService.GetPostComments(PostId);
+        public async Task<List<PostCommentWithAvatarLinkModel>> GetPostComments(Guid PostId) => await _postService.GetPostComments(PostId);
     }
 }

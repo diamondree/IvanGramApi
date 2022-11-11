@@ -1,4 +1,4 @@
-﻿namespace IvanGram.Models
+﻿namespace IvanGram.Models.PostComment
 {
     public class CreatePostCommentModel
     {

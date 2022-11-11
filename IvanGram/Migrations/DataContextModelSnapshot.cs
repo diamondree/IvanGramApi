@@ -24,11 +24,9 @@ namespace IvanGram.Migrations
 
             modelBuilder.Entity("DAL.Entities.Attach", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
@@ -52,7 +50,7 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Attaches", (string)null);
+                    b.ToTable("Attaches");
 
                     b.UseTptMappingStrategy();
                 });
@@ -76,10 +74,10 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Posts", (string)null);
+                    b.ToTable("Posts");
                 });
 
-            modelBuilder.Entity("DAL.Entities.PostComments", b =>
+            modelBuilder.Entity("DAL.Entities.PostComment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -104,7 +102,7 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostComments", (string)null);
+                    b.ToTable("PostComments");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>
@@ -133,7 +131,7 @@ namespace IvanGram.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("DAL.Entities.UserSession", b =>
@@ -158,10 +156,10 @@ namespace IvanGram.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSessions", (string)null);
+                    b.ToTable("UserSessions");
                 });
 
-            modelBuilder.Entity("DAL.Entities.PostFiles", b =>
+            modelBuilder.Entity("DAL.Entities.PostFile", b =>
                 {
                     b.HasBaseType("DAL.Entities.Attach");
 
@@ -208,7 +206,7 @@ namespace IvanGram.Migrations
                     b.Navigation("Author");
                 });
 
-            modelBuilder.Entity("DAL.Entities.PostComments", b =>
+            modelBuilder.Entity("DAL.Entities.PostComment", b =>
                 {
                     b.HasOne("DAL.Entities.User", "Author")
                         .WithMany()
@@ -238,8 +236,14 @@ namespace IvanGram.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DAL.Entities.PostFiles", b =>
+            modelBuilder.Entity("DAL.Entities.PostFile", b =>
                 {
+                    b.HasOne("DAL.Entities.Attach", null)
+                        .WithOne()
+                        .HasForeignKey("DAL.Entities.PostFile", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("DAL.Entities.Post", "Post")
                         .WithMany("Files")
                         .HasForeignKey("PostId")

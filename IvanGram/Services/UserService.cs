@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Common;
+using Common.Consts;
 using DAL;
 using DAL.Entities;
 using IvanGram.Configs;
 using IvanGram.Models;
+using IvanGram.Models.Post;
+using IvanGram.Models.Token;
+using IvanGram.Models.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -90,8 +94,8 @@ namespace IvanGram.Services
                 claims: new Claim[]
                 {
                     new Claim(ClaimsIdentity.DefaultNameClaimType, userSession.User.Name),
-                    new Claim("SessionId", userSession.Id.ToString()),
-                    new Claim("Id", userSession.User.Id.ToString())
+                    new Claim(ClaimNames.SessionId, userSession.Id.ToString()),
+                    new Claim(ClaimNames.Id, userSession.User.Id.ToString())
                 },
                 expires: DateTime.Now.AddMinutes(_config.LifeTime),
                 signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
@@ -103,7 +107,7 @@ namespace IvanGram.Services
                 notBefore: DTNow,
                 claims: new Claim[]
                 {
-                    new Claim("RefreshToken", userSession.RefreshToken.ToString())
+                    new Claim(ClaimNames.RefreshToken, userSession.RefreshToken.ToString())
                 },
                 expires: DateTime.Now.AddHours(_config.LifeTime),
                 signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
@@ -131,7 +135,7 @@ namespace IvanGram.Services
                 || !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 throw new SecurityTokenException("Invalid token");
 
-            if (principal.Claims.FirstOrDefault(x => x.Type == "RefreshToken")?.Value is String refreshIdString
+            if (principal.Claims.FirstOrDefault(x => x.Type == ClaimNames.RefreshToken)?.Value is String refreshIdString
                 && Guid.TryParse(refreshIdString, out var refreshId))
             {
                 var session = await _session.GetSessionByRefreshToken(refreshId);
@@ -185,13 +189,10 @@ namespace IvanGram.Services
         public async Task<AttachModel> GetUserAvatar (Guid userId)
         {
             var user = await GetUserById(userId);
-            if (user.Avatar == null)
+            var attach = _mapper.Map<AttachModel>(user.Avatar);
+            if (attach == null)
                 throw new Exception("User does not have avatar");
-            else
-            {
-                var attach = await _attachService.GetAvtarFromUser(user);
-                return attach;
-            }
+            return attach;
         }
 
         public async Task CreateUserPost(AddPostModel model, Guid UserId)
@@ -200,7 +201,7 @@ namespace IvanGram.Services
 
             if (user != null)
             {
-                var tempPostFileList = new List<PostFiles>();
+                var tempPostFileList = new List<PostFile>();
                 if (model.Files.Count > 0)
                 {
                     
@@ -208,7 +209,7 @@ namespace IvanGram.Services
                     {
                         var filePath = _attachService.CopyFileToAttaches(file);
 
-                        var postFile = new PostFiles
+                        var postFile = new PostFile
                         {
                             Name = file.Name,
                             MimeType = file.MimeType,

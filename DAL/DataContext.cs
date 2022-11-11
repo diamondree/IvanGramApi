@@ -25,7 +25,7 @@ namespace DAL
                 .HasOne(u => u.Avatar)
                 .WithOne(a => a.User);
 
-            modelBuilder.Entity<PostFiles>()
+            modelBuilder.Entity<PostFile>()
                 .ToTable(nameof(PostFiles));
         }
 
@@ -34,7 +34,7 @@ namespace DAL
         public DbSet<Attach> Attaches => Set<Attach>();
         public DbSet<UserAvatar> Avatars => Set<UserAvatar>();
         public DbSet<Post> Posts => Set<Post>();
-        public DbSet<PostComments> PostComments => Set<PostComments>();
-        public DbSet<PostFiles> PostFiles => Set<PostFiles>();
+        public DbSet<PostComment> PostComments => Set<PostComment>();
+        public DbSet<PostFile> PostFiles => Set<PostFile>();
     }
 }

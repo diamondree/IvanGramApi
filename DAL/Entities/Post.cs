@@ -13,7 +13,7 @@ namespace DAL.Entities
         public string? Description { get; set; }
 
         public virtual User Author { get; set; } = null!;
-        public virtual ICollection<PostFiles> Files { get; set; } = null!;
-        public virtual ICollection<PostComments>? Comments { get; set; }
+        public virtual ICollection<PostFile> Files { get; set; } = null!;
+        public virtual ICollection<PostComment>? Comments { get; set; }
     }
 }

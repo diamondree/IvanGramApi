@@ -1,4 +1,4 @@
-﻿using IvanGram.Models;
+﻿using IvanGram.Models.Token;
 using IvanGram.Services;
 using Microsoft.AspNetCore.Mvc;
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Entities
 {
-    public class PostFiles : Attach
+    public class PostFile : Attach
     {
         public Guid PostId { get; set; }
 

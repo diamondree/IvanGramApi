@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace IvanGram.Models
+namespace IvanGram.Models.User
 {
     public class CreateUserModel
     {
@@ -16,7 +16,7 @@ namespace IvanGram.Models
         [Required]
         public DateTimeOffset BirthDate { get; set; }
 
-        public CreateUserModel (string name, string email, string password, string retryPassword, DateTimeOffset birthDate)
+        public CreateUserModel(string name, string email, string password, string retryPassword, DateTimeOffset birthDate)
         {
             Name = name;
             Email = email;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Entities
 {
-    public class PostComments
+    public class PostComment
     {
         public Guid Id { get; set; }
         public string Text { get; set; } = null!;

@@ -1,8 +1,8 @@
-﻿namespace IvanGram.Models
+﻿namespace IvanGram.Models.Post
 {
     public class AddPostModel
     {
-        public List <MetaDataModel> Files { get; set; }
+        public List<MetaDataModel> Files { get; set; }
         public string Description { get; set; }
     }
 }

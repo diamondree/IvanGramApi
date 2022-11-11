@@ -1,4 +1,4 @@
-﻿namespace IvanGram.Models
+﻿namespace IvanGram.Models.Token
 {
     public class TokenModel
     {
