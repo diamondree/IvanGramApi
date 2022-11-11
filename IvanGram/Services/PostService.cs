@@ -33,31 +33,37 @@ namespace IvanGram.Services
         public async Task<PostModel> GetPostByPostId(Guid postId)
         {
             var post = await _context.Posts
-                .Include(x=>x.Files)
-                .Include(x=>x.Author).ThenInclude(x=>x.Avatar)
-                .FirstOrDefaultAsync(x=>x.Id == postId);
+                .Include(x => x.Files)
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == postId);
+
             if (post == null)
                 throw new Exception("Post not found");
-            var attachModelsList = await _attachService.GetPostAttaches(post);
-            var tempList = new List<string>();
-            foreach (var attachModel in attachModelsList)
+
+            return CreatePostModel(post);
+        }
+        
+        public async Task<List<PostModel>> GetPosts(int skip, int take)
+        {
+            var posts = await _context.Posts
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                .Include(x => x.Files)
+                .AsNoTracking()
+                .OrderByDescending(x => x.CreatedAt)
+                .Skip(skip).Take(take)
+                .ToListAsync();
+
+            if (posts == null)
+                throw new Exception("Posts not found");
+
+            var postModelList = new List<PostModel>();
+
+            foreach (var post in posts)
             {
-                tempList.Add(_linkContentGenerator(attachModel.Id));
+                postModelList.Add(CreatePostModel(post));
             }
-            var temp = string.Empty;
-            if (post.Author.Avatar != null)
-                temp = _linkAvatarGenerator(post.Author.Id);
-            var res = new PostModel
-            {
-                Id = post.Id,
-                Author = post.Author.Name,
-                AuthorAvatar = temp,
-                CreatedAt = post.CreatedAt,
-                Description = post.Description,
-                AttachesLinks = tempList,
-            };
-            
-            return res;
+            return postModelList;
         }
 
         public async Task CreatePostComment(Guid userId, CreatePostCommentModel model)
@@ -106,15 +112,10 @@ namespace IvanGram.Services
             {
                 commentsWithAvatarLink.Add(_mapper.Map<PostCommentModel, PostCommentWithAvatarLinkModel > (comment, opt =>
                 {
-                    opt.AfterMap((src, dest) => dest.AvatarLink = FixAvatar(src.AuthorId));
+                    opt.AfterMap((src, dest) => dest.AvatarLink = GetAvatarLink(src.AuthorId));
                 }));
             }
             return commentsWithAvatarLink;
-        }
-
-        private string? FixAvatar (Guid userId)
-        {
-            return _linkAvatarGenerator(userId);
         }
 
         public async Task<AttachModel> GetPostContent(Guid postFileId)
@@ -122,6 +123,33 @@ namespace IvanGram.Services
             var res = await _context.PostFiles.FirstOrDefaultAsync(x => x.Id == postFileId);
 
             return _mapper.Map<AttachModel>(res);
+        }
+
+
+        private string? GetAvatarLink(Guid userId)
+            => _linkAvatarGenerator(userId);
+
+        private List<string>? GetAttachLink(List<AttachModel> models)
+        {
+            var res = new List<string>();
+            foreach (var model in models)
+            {
+                res.Add(_linkContentGenerator(model.Id));
+            }
+            return res;
+        }
+
+        private PostModel CreatePostModel(Post post)
+        {
+            var postAttachModelsList = _mapper.Map<List<AttachModel>>(post.Files);
+
+            var postModel = _mapper.Map<Post, PostModel>(post, opt =>
+            opt.AfterMap((src, dest) =>
+            {
+                dest.AuthorAvatar = GetAvatarLink(post.Author.Id);
+                dest.AttachesLinks = GetAttachLink(postAttachModelsList);
+            }));
+            return postModel;
         }
 
         public void Dispose()

@@ -2,6 +2,7 @@
 using Common;
 using Common.Extensions;
 using IvanGram.Controllers;
+using IvanGram.Models.Post;
 using IvanGram.Models.PostComment;
 using IvanGram.Models.User;
 using IvanGram.Services;
@@ -28,6 +29,12 @@ namespace IvanGram
             CreateMap<DAL.Entities.Attach, Models.AttachModel>();
 
             CreateMap<PostCommentModel, PostCommentWithAvatarLinkModel>();
+
+            CreateMap<DAL.Entities.Post, PostModel>()
+                .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author.Name))
+                .ForMember(dest => dest.AuthorAvatar, opt => opt.Ignore())
+                .ForMember(dest => dest.AttachesLinks, opt => opt.Ignore())
+                ;
         }
     }
 }

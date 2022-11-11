@@ -3,6 +3,7 @@
     public class PostModel
     {
         public Guid Id { get; set; }
+        public Guid AuthorId { get; set; }
         public string Author { get; set; } = null!;
         public string? AuthorAvatar { get; set; }
         public List<string> AttachesLinks { get; set; } = null!;

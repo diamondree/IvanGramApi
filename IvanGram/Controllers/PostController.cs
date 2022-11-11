@@ -7,6 +7,7 @@ using IvanGram.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.CompilerServices;
 
 namespace IvanGram.Controllers
 {
@@ -29,6 +30,7 @@ namespace IvanGram.Controllers
                 userId,
             });
         }
+
         private string? _linkContentGenerator(Guid postContentId)
         {
             return Url.ControllerAction<AttachController>(nameof(AttachController.GetPostContent), new
@@ -40,7 +42,12 @@ namespace IvanGram.Controllers
 
 
         [HttpGet]
-        public async Task<PostModel> GetPostByPostId(Guid PostId) => await _postService.GetPostByPostId(PostId);
+        public async Task<PostModel> GetPostByPostId(Guid PostId) 
+            => await _postService.GetPostByPostId(PostId);
+
+        [HttpGet]
+        public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10)
+            => await _postService.GetPosts(skip, take);
 
         [HttpPost]
         [Authorize]
@@ -56,6 +63,7 @@ namespace IvanGram.Controllers
         }
 
         [HttpGet]
-        public async Task<List<PostCommentWithAvatarLinkModel>> GetPostComments(Guid PostId) => await _postService.GetPostComments(PostId);
+        public async Task<List<PostCommentWithAvatarLinkModel>> GetPostComments(Guid PostId) 
+            => await _postService.GetPostComments(PostId);
     }
 }

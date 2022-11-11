@@ -67,7 +67,8 @@ namespace IvanGram.Services
             return res;
         }
 
-        public async Task<List<AttachModel>> GetPostAttaches(Post post) => _mapper.Map<List<AttachModel>>(post.Files);
+        public async Task<List<AttachModel>> GetPostAttaches(Post post) 
+            => _mapper.Map<List<AttachModel>>(post.Files);
 
         public async Task<AttachModel> GetAttachById(Guid id)
         {
