@@ -5,7 +5,7 @@ using Common.Consts;
 using DAL;
 using DAL.Entities;
 using IvanGram.Configs;
-using IvanGram.Models;
+using IvanGram.Models.Attach;
 using IvanGram.Models.Post;
 using IvanGram.Models.Token;
 using IvanGram.Models.User;
@@ -168,7 +168,7 @@ namespace IvanGram.Services
             return GenerateTokens(userSession.Entity);
         }
 
-        public async Task AddAvatarToUser(AddUserAvatarModel model)
+        public async Task UploadUserAvatar(AddUserAvatarModel model)
         {
             var user = await _context.Users.Include(x=>x.Avatar).FirstOrDefaultAsync(x => x.Id == model.UserId);
             if (user != null )

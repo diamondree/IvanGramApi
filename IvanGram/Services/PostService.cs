@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using DAL;
 using DAL.Entities;
-using IvanGram.Models;
+using IvanGram.Models.Attach;
 using IvanGram.Models.Post;
 using IvanGram.Models.PostComment;
 using Microsoft.AspNetCore.Mvc;
@@ -86,7 +86,7 @@ namespace IvanGram.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<PostCommentWithAvatarLinkModel>> GetPostComments (Guid postId)
+        public async Task<List<PostCommentModel>> GetPostComments (Guid postId)
         {
             var post = await _context.Posts
                 .Include(x => x.Comments).ThenInclude(x => x.Author).ThenInclude(x=>x.Avatar)
@@ -103,19 +103,14 @@ namespace IvanGram.Services
 
             foreach (var comment in post.Comments)
             {
-                comments.Add(_mapper.Map<PostCommentModel>(comment));
-            }
-
-            var commentsWithAvatarLink = new List<PostCommentWithAvatarLinkModel>();
-
-            foreach (var comment in comments)
-            {
-                commentsWithAvatarLink.Add(_mapper.Map<PostCommentModel, PostCommentWithAvatarLinkModel > (comment, opt =>
+                comments.Add(_mapper.Map<PostComment, PostCommentModel>(comment, opt =>
+                opt.AfterMap((src, dest) =>
                 {
-                    opt.AfterMap((src, dest) => dest.AvatarLink = GetAvatarLink(src.AuthorId));
-                }));
+                    dest.AvatarLink = GetAvatarLink(comment.Author.Id);
+                })));
             }
-            return commentsWithAvatarLink;
+
+            return comments;
         }
 
         public async Task<AttachModel> GetPostContent(Guid postFileId)

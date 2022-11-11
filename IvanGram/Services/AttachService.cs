@@ -2,10 +2,10 @@
 using DAL;
 using DAL.Entities;
 using IvanGram.Controllers;
-using IvanGram.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc;
+using IvanGram.Models.Attach;
 
 namespace IvanGram.Services
 {

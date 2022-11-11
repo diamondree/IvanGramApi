@@ -4,6 +4,7 @@ using Common.Consts;
 using Common.Extensions;
 using DAL;
 using IvanGram.Models;
+using IvanGram.Models.Attach;
 using IvanGram.Models.Post;
 using IvanGram.Models.User;
 using IvanGram.Services;
@@ -29,7 +30,7 @@ namespace IvanGram.Controllers
         }
 
         [HttpPost]
-        public async Task CreateUser(CreateUserModel model) => await _userService.CreateUser(model);
+        public async Task RegisterUser(CreateUserModel model) => await _userService.CreateUser(model);
 
         [HttpGet]
         [Authorize]
@@ -48,21 +49,21 @@ namespace IvanGram.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task AddAvatarToUser(MetaDataModel model)
+        public async Task UploadAvatar(MetaDataModel model)
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
             if (userId != default)
             {
                 var path = _attachService.CopyFileToAttaches(model);
 
-                    var addUserAvatarModel = new AddUserAvatarModel
-                    {
-                        MetaDataModel = model,
-                        UserId = userId,
-                        FilePath = path
-                    };
+                var addUserAvatarModel = new AddUserAvatarModel
+                {
+                    MetaDataModel = model,
+                    UserId = userId,
+                    FilePath = path
+                };
 
-                    await _userService.AddAvatarToUser(addUserAvatarModel);
+                await _userService.UploadUserAvatar(addUserAvatarModel);
             }
             else
                 throw new Exception("you are not authorized");
@@ -74,19 +75,6 @@ namespace IvanGram.Controllers
             var attach = await _userService.GetUserAvatar(userId);
 
             return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
-        }
-
-        [HttpPost]
-        [Authorize]
-        public async Task AddPostToUser(AddPostModel model)
-        {
-            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-            if (userId != default)
-            {
-                await _userService.CreateUserPost(model, userId);
-            }
-            else
-                throw new Exception("You are not authorized");
         }
     }
 }

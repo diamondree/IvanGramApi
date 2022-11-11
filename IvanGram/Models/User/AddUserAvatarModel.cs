@@ -1,4 +1,6 @@
-﻿namespace IvanGram.Models
+﻿using IvanGram.Models.Attach;
+
+namespace IvanGram.Models.User
 {
     public class AddUserAvatarModel
     {

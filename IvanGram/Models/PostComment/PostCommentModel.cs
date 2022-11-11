@@ -7,10 +7,6 @@ namespace IvanGram.Models.PostComment
         public DateTimeOffset CreatedAt { get; set; }
         public string Text { get; set; } = null!;
         public Guid AuthorId { get; set; }
-    }
-
-    public class PostCommentWithAvatarLinkModel : PostCommentModel
-    {
         public string? AvatarLink { get; set; }
     }
 }

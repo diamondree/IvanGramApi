@@ -16,11 +16,13 @@ namespace IvanGram.Controllers
     public class PostController : ControllerBase
     {
         private readonly PostService _postService;
+        private readonly UserService _userService;
 
-        public PostController(PostService postService)
+        public PostController(PostService postService, UserService userService)
         {
             _postService = postService;
             _postService.SetLinkGenerator(_linkContentGenerator, _linkAvatarGenerator);
+            _userService = userService;
         }
 
         private string? _linkAvatarGenerator(Guid userId)
@@ -39,7 +41,18 @@ namespace IvanGram.Controllers
             });
         }
 
-
+        [HttpPost]
+        [Authorize]
+        public async Task CreatePost(AddPostModel model)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
+            {
+                await _userService.CreateUserPost(model, userId);
+            }
+            else
+                throw new Exception("You are not authorized");
+        }
 
         [HttpGet]
         public async Task<PostModel> GetPostByPostId(Guid PostId) 
@@ -63,7 +76,7 @@ namespace IvanGram.Controllers
         }
 
         [HttpGet]
-        public async Task<List<PostCommentWithAvatarLinkModel>> GetPostComments(Guid PostId) 
+        public async Task<List<PostCommentModel>> GetPostComments(Guid PostId) 
             => await _postService.GetPostComments(PostId);
     }
 }

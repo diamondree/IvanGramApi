@@ -2,6 +2,7 @@
 using Common;
 using Common.Extensions;
 using IvanGram.Controllers;
+using IvanGram.Models.Attach;
 using IvanGram.Models.Post;
 using IvanGram.Models.PostComment;
 using IvanGram.Models.User;
@@ -21,14 +22,13 @@ namespace IvanGram
                 .ForMember(dest => dest.BirthDate, opt => opt.MapFrom(src => src.BirthDate.UtcDateTime))
                 ;
             CreateMap<DAL.Entities.User, UserModel>();
-            CreateMap<DAL.Entities.UserAvatar, Models.AttachModel>();
-            CreateMap<DAL.Entities.PostFile, Models.AttachModel>();
+            CreateMap<DAL.Entities.UserAvatar, AttachModel>();
+            CreateMap<DAL.Entities.PostFile, AttachModel>();
             CreateMap<DAL.Entities.PostComment, PostCommentModel>()
                 .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.Author.Id))
+                .ForMember(dest => dest.AvatarLink, opt => opt.Ignore())
                 ;
-            CreateMap<DAL.Entities.Attach, Models.AttachModel>();
-
-            CreateMap<PostCommentModel, PostCommentWithAvatarLinkModel>();
+            CreateMap<DAL.Entities.Attach, AttachModel>();
 
             CreateMap<DAL.Entities.Post, PostModel>()
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author.Name))

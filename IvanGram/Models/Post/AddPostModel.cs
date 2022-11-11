@@ -1,4 +1,6 @@
-﻿namespace IvanGram.Models.Post
+﻿using IvanGram.Models.Attach;
+
+namespace IvanGram.Models.Post
 {
     public class AddPostModel
     {

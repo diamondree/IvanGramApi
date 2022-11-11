@@ -1,7 +1,7 @@
 ﻿using Common.Consts;
 using Common.Extensions;
 using DAL.Entities;
-using IvanGram.Models;
+using IvanGram.Models.Attach;
 using IvanGram.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -33,8 +33,8 @@ namespace IvanGram.Controllers
 
         [HttpGet]
         [Route("{userId}")]
-        public async Task<FileStreamResult> GetUserAvatar(Guid userId, bool downolad = false)
-            => RenderAttach(await _userService.GetUserAvatar(userId), downolad);
+        public async Task<FileStreamResult> GetUserAvatar(Guid userId, bool download = false)
+            => RenderAttach(await _userService.GetUserAvatar(userId), download);
 
         [HttpGet]
         public async Task<FileStreamResult> GetCurentUserAvatar(bool download = false)
