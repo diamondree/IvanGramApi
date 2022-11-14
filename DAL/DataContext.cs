@@ -18,15 +18,18 @@ namespace DAL
                 .HasIndex(f => f.Email)
                 .IsUnique();
 
-            modelBuilder.Entity<UserAvatar>()
-                .ToTable(nameof(Avatars));
-
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Avatar)
                 .WithOne(a => a.User);
 
+            modelBuilder.Entity<UserAvatar>()
+                .ToTable(nameof(Avatars));
+
             modelBuilder.Entity<PostFile>()
                 .ToTable(nameof(PostFiles));
+
+            modelBuilder.Entity<Subscription>()
+                .HasNoKey();
         }
 
         public DbSet<User> Users => Set<User>();
@@ -36,5 +39,6 @@ namespace DAL
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<PostComment> PostComments => Set<PostComment>();
         public DbSet<PostFile> PostFiles => Set<PostFile>();
+        public DbSet<Subscription> Subscriptions => Set<Subscription>();
     }
 }
