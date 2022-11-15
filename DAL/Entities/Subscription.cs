@@ -11,9 +11,10 @@ namespace DAL.Entities
 {
     public class Subscription
     {
+        public Guid Id { get; set; }
         public bool IsActive { get; set; }
         public DateTimeOffset SubscribedAt { get; set; }
         public virtual User Follower { get; set; } = null!;
-        public virtual User SubscribedTo { get; set; } = null!;
+        public virtual User SubscribeTo { get; set; } = null!;
     }
 }

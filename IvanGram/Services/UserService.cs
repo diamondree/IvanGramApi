@@ -240,6 +240,59 @@ namespace IvanGram.Services
             }
         }
 
+        public async Task<Subscription> GetSubscribeNote(User subscribeTo, User follower)
+        {
+            var dbNote = await _context.Subscriptions.FirstOrDefaultAsync(x => x.SubscribeTo == subscribeTo && x.Follower == follower);
+            return dbNote;
+        }
+
+        public async Task SubscribeToUser (Guid subscribeToId, Guid followerId)
+        {
+            if (subscribeToId == followerId)
+                throw new Exception("You can`t subscribe yourself");
+
+            var subscribeToUser = await GetUserById(subscribeToId);
+            var followerUser = await GetUserById(followerId);
+
+            var dbNote = await GetSubscribeNote(subscribeToUser, followerUser);
+
+            if (dbNote!=null && dbNote.IsActive)
+                throw new Exception("You are already subscribed");
+
+            else if (dbNote != null)
+            {
+                dbNote.IsActive = true;
+                await _context.SaveChangesAsync();
+            }
+
+            if (dbNote == null)
+            {
+                var subscription = new Subscription();
+                subscription.IsActive = true;
+                subscription.SubscribedAt = DateTimeOffset.UtcNow;
+                subscription.SubscribeTo = subscribeToUser;
+                subscription.Follower = followerUser;
+                await _context.AddAsync(subscription);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task UnscribeUser (Guid unscribeToId, Guid followerId)
+        {
+            if (unscribeToId == followerId)
+                throw new Exception("You can not unscribe yourself");
+            var unscribeToUser = await GetUserById(unscribeToId);
+            var followerUser = await GetUserById(followerId);
+            var dbNote = await GetSubscribeNote(unscribeToUser, followerUser);
+            if (dbNote == null || !dbNote.IsActive)
+                throw new Exception("You are not followed");
+            else
+            {
+                dbNote.IsActive = false;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public void Dispose()
         {
             _context.Dispose();

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IvanGram.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221114211025_AddSubscriptions")]
-    partial class AddSubscriptions
+    [Migration("20221115202255_AddSubscribeEntity")]
+    partial class AddSubscribeEntity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -110,21 +110,27 @@ namespace IvanGram.Migrations
 
             modelBuilder.Entity("DAL.Entities.Subscription", b =>
                 {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("FollowerId")
                         .HasColumnType("uuid");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid>("SubscribeToId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("SubscribedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("SubscribedToId")
-                        .HasColumnType("uuid");
+                    b.HasKey("Id");
 
                     b.HasIndex("FollowerId");
 
-                    b.HasIndex("SubscribedToId");
+                    b.HasIndex("SubscribeToId");
 
                     b.ToTable("Subscriptions");
                 });
@@ -257,15 +263,15 @@ namespace IvanGram.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DAL.Entities.User", "SubscribedTo")
+                    b.HasOne("DAL.Entities.User", "SubscribeTo")
                         .WithMany()
-                        .HasForeignKey("SubscribedToId")
+                        .HasForeignKey("SubscribeToId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Follower");
 
-                    b.Navigation("SubscribedTo");
+                    b.Navigation("SubscribeTo");
                 });
 
             modelBuilder.Entity("DAL.Entities.UserSession", b =>

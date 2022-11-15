@@ -27,9 +27,6 @@ namespace DAL
 
             modelBuilder.Entity<PostFile>()
                 .ToTable(nameof(PostFiles));
-
-            modelBuilder.Entity<Subscription>()
-                .HasNoKey();
         }
 
         public DbSet<User> Users => Set<User>();
