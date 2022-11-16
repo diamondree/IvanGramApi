@@ -69,7 +69,6 @@ namespace IvanGram.Controllers
             return await _postService.GetUserFolowedUsersPosts(userId);
         }
 
-
         [HttpPost]
         public async Task AddCommentToPost(CreatePostCommentModel model)
         {

@@ -47,5 +47,19 @@ namespace IvanGram.Controllers
             var subscribeToId = User.GetClaimValue<Guid>(ClaimNames.Id);
             await _subscribeService.AcceptSubscribe(subscribeToId, followerId);
         }
+
+        [HttpPost]
+        public async Task AddUserToBlackList(Guid userId)
+        {
+            var authorContentId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            await _subscribeService.AddUserToBlackList(userId, authorContentId);
+        }
+
+        [HttpPut]
+        public async Task DeleteUserFromBlackList(Guid userId)
+        {
+            var authorContentId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            await _subscribeService.DeleteUserFromBlackList(userId, authorContentId);
+        }
     }
 }

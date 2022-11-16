@@ -82,6 +82,7 @@ namespace IvanGram.Services
             else
             {
                 dbNote.IsActive = false;
+                dbNote.IsAccepted = false;
                 await _context.SaveChangesAsync();
             }
         }
@@ -120,12 +121,55 @@ namespace IvanGram.Services
             var UnaccepterSubscribersList = _context.Subscriptions.Include(x=>x.Follower)
                 .Where(x => x.SubscribeTo.Id == subscribeToId)
                 .Where(x => x.IsActive == true)
-                .Where(x => x.IsAccepted == false).ToList();
+                .Where(x => x.IsAccepted == false)
+                .ToList();
             foreach (var UnaccepterSubscriber in UnaccepterSubscribersList)
             {
                 UnacceptedSubscribersModelList.Add(_mapper.Map<UnacceptedSubscribeModel>(UnaccepterSubscriber));
             }
             return UnacceptedSubscribersModelList;
+        }
+
+        public async Task AddUserToBlackList(Guid userId, Guid authorContentId)
+        {
+            var AuthorContent = await _userService.GetUserById(authorContentId);
+            var User = await _userService.GetUserById(userId);
+
+            var dbNote = await GetSubscribeNoteByUsers(AuthorContent, User);
+
+            if (dbNote == null)
+            {
+                var subscription = new Subscription();
+                subscription.IsInBlackList = true;
+                subscription.SubscribedAt = DateTimeOffset.UtcNow;
+                subscription.SubscribeTo = AuthorContent;
+                subscription.Follower = User;
+                await _context.AddAsync(subscription);
+                await _context.SaveChangesAsync();
+            }
+
+            else
+            {
+                dbNote.IsActive = false;
+                dbNote.IsAccepted = false;
+                dbNote.IsInBlackList = true;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteUserFromBlackList(Guid userId, Guid authorContentId)
+        {
+            var AuthorContent = await _userService.GetUserById(authorContentId);
+            var User = await _userService.GetUserById(userId);
+
+            var dbNote = await GetSubscribeNoteByUsers(AuthorContent, User);
+            if (!dbNote.IsInBlackList)
+                throw new Exception("User is not in your black list");
+            else
+            {
+                dbNote.IsInBlackList = false;
+                await _context.SaveChangesAsync();
+            }
         }
 
 

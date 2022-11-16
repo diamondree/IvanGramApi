@@ -57,21 +57,6 @@ namespace IvanGram.Services
             return await GetPostModelList(posts);
         }
 
-        private Task<List<PostModel>> GetPostModelList(List<Post> posts)
-        {
-            if (posts == null)
-                throw new Exception("Posts not found");
-
-            var postModelList = new List<PostModel>();
-
-            foreach (var post in posts)
-            {
-                postModelList.Add(CreatePostModel(post));
-            }
-
-            return Task.FromResult(postModelList);
-        }
-
         public async Task<List<PostModel>> GetUserPosts(Guid userId)
         {
             var posts = await _context.Posts
@@ -90,6 +75,8 @@ namespace IvanGram.Services
                 .Include(x=>x.SubscribeTo)
                 .AsNoTracking()
                 .Where(x => x.Follower.Id == userId)
+                .Where(x=>x.IsActive == true)
+                .Where(x=>x.IsAccepted == true)
                 .ToListAsync();
 
             var posts = new List<PostModel>();
@@ -182,6 +169,21 @@ namespace IvanGram.Services
                 dest.AttachesLinks = GetAttachLink(postAttachModelsList);
             }));
             return postModel;
+        }
+
+        private Task<List<PostModel>> GetPostModelList(List<Post> posts)
+        {
+            if (posts == null)
+                throw new Exception("Posts not found");
+
+            var postModelList = new List<PostModel>();
+
+            foreach (var post in posts)
+            {
+                postModelList.Add(CreatePostModel(post));
+            }
+
+            return Task.FromResult(postModelList);
         }
 
         public void Dispose()
