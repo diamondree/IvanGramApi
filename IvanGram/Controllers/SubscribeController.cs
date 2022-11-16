@@ -41,7 +41,7 @@ namespace IvanGram.Controllers
             return await _subscribeService.GetMyUnacceptedSubscribers(subscribeToId);
         }
 
-        [HttpPost]
+        [HttpPut]
         public async Task AcceptUserSubscribe(Guid followerId)
         {
             var subscribeToId = User.GetClaimValue<Guid>(ClaimNames.Id);

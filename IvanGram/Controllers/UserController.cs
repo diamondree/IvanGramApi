@@ -18,6 +18,7 @@ namespace IvanGram.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
@@ -30,14 +31,13 @@ namespace IvanGram.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task RegisterUser(CreateUserModel model) => await _userService.CreateUser(model);
 
         [HttpGet]
-        [Authorize]
         public async Task<List<UserModel>> GetUsers() => await _userService.GetUsers();
 
         [HttpGet]
-        [Authorize]
         public async Task<UserModel> GetCurrentUser()
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
@@ -48,7 +48,6 @@ namespace IvanGram.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task UploadAvatar(MetaDataModel model)
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
@@ -77,6 +76,12 @@ namespace IvanGram.Controllers
             return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
         }
 
-        
+        [HttpPut]
+        public async Task SetPrivateProfileSettings(bool SetProfileClosed)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            await _userService.SetProfilePrivate(userId, SetProfileClosed);
+        }
+
     }
 }

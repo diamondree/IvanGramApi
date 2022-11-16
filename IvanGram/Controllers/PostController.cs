@@ -13,6 +13,7 @@ namespace IvanGram.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize]
     public class PostController : ControllerBase
     {
         private readonly PostService _postService;
@@ -42,7 +43,6 @@ namespace IvanGram.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task CreatePost(AddPostModel model)
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
@@ -59,11 +59,18 @@ namespace IvanGram.Controllers
             => await _postService.GetPostByPostId(PostId);
 
         [HttpGet]
-        public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10)
-            => await _postService.GetPosts(skip, take);
+        public async Task<List<PostModel>> GetAllPosts(int skip = 0, int take = 10) 
+            => await _postService.GetAllPosts(skip, take);
+
+        [HttpGet]
+        public async Task<List<PostModel>> GetUserFolowedUsersPosts()
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            return await _postService.GetUserFolowedUsersPosts(userId);
+        }
+
 
         [HttpPost]
-        [Authorize]
         public async Task AddCommentToPost(CreatePostCommentModel model)
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);

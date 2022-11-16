@@ -44,7 +44,7 @@ namespace IvanGram.Services
             return CreatePostModel(post);
         }
         
-        public async Task<List<PostModel>> GetPosts(int skip, int take)
+        public async Task<List<PostModel>> GetAllPosts (int skip, int take)
         {
             var posts = await _context.Posts
                 .Include(x => x.Author).ThenInclude(x => x.Avatar)
@@ -53,7 +53,12 @@ namespace IvanGram.Services
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip(skip).Take(take)
                 .ToListAsync();
+            
+            return await GetPostModelList(posts);
+        }
 
+        private Task<List<PostModel>> GetPostModelList(List<Post> posts)
+        {
             if (posts == null)
                 throw new Exception("Posts not found");
 
@@ -63,7 +68,39 @@ namespace IvanGram.Services
             {
                 postModelList.Add(CreatePostModel(post));
             }
-            return postModelList;
+
+            return Task.FromResult(postModelList);
+        }
+
+        public async Task<List<PostModel>> GetUserPosts(Guid userId)
+        {
+            var posts = await _context.Posts
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                .Include(x => x.Files).AsNoTracking()
+                .Where(x => x.Author.Id == userId)
+                .ToListAsync();
+
+            return await GetPostModelList(posts);
+        }
+
+        public async Task<List<PostModel>> GetUserFolowedUsersPosts (Guid userId)
+        {
+            var subscribedUsers = await _context.Subscriptions
+                .Include(x=>x.Follower)
+                .Include(x=>x.SubscribeTo)
+                .AsNoTracking()
+                .Where(x => x.Follower.Id == userId)
+                .ToListAsync();
+
+            var posts = new List<PostModel>();
+
+            foreach (var subscribedTo in subscribedUsers)
+            {
+                var userPosts = await GetUserPosts(subscribedTo.SubscribeTo.Id);
+                posts.AddRange(userPosts);
+            }
+
+            return posts;
         }
 
         public async Task CreatePostComment(Guid userId, CreatePostCommentModel model)

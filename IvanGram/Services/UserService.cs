@@ -240,6 +240,15 @@ namespace IvanGram.Services
             }
         }
 
+        public async Task SetProfilePrivate (Guid userId, bool setProfileClosed)
+        {
+            var user = await GetUserById(userId);
+            if (user.IsPrivate == setProfileClosed)
+                throw new Exception($"Your profile setting <<IsPrivate>> is already {setProfileClosed}");
+            user.IsPrivate = setProfileClosed;
+            await _context.SaveChangesAsync();
+        }
+
         public void Dispose()
         {
             _context.Dispose();
