@@ -77,20 +77,6 @@ namespace IvanGram.Controllers
             return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
         }
 
-        [HttpPost]
-        [Authorize]
-        public async Task SubsrcibeToUser(Guid subscribeToId)
-        {
-            var followerId = User.GetClaimValue<Guid>(ClaimNames.Id);
-            await _userService.SubscribeToUser(subscribeToId, followerId);
-        }
-
-        [HttpPost]
-        [Authorize]
-        public async Task UnscribeUser(Guid unscribeUserId)
-        {
-            var followerId = User.GetClaimValue<Guid>(ClaimNames.Id);
-            await _userService.UnscribeUser(unscribeUserId, followerId);
-        }
+        
     }
 }

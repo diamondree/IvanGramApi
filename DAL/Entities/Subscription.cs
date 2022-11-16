@@ -12,7 +12,9 @@ namespace DAL.Entities
     public class Subscription
     {
         public Guid Id { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = false;
+        public bool IsAccepted { get; set; } = false;
+        public bool IsInBlackList { get; set; } = false;
         public DateTimeOffset SubscribedAt { get; set; }
         public virtual User Follower { get; set; } = null!;
         public virtual User SubscribeTo { get; set; } = null!;

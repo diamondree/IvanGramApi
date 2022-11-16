@@ -5,6 +5,7 @@ using IvanGram.Controllers;
 using IvanGram.Models.Attach;
 using IvanGram.Models.Post;
 using IvanGram.Models.PostComment;
+using IvanGram.Models.Subscribe;
 using IvanGram.Models.User;
 using IvanGram.Services;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -35,6 +36,9 @@ namespace IvanGram
                 .ForMember(dest => dest.AuthorAvatar, opt => opt.Ignore())
                 .ForMember(dest => dest.AttachesLinks, opt => opt.Ignore())
                 ;
+
+            CreateMap<DAL.Entities.Subscription, UnacceptedSubscribeModel>()
+                .ForMember(dest => dest.FollowerId, opt => opt.MapFrom(src => src.Follower.Id));
         }
     }
 }

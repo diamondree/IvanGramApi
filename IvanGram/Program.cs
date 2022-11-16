@@ -69,6 +69,8 @@ internal class Program
 
         builder.Services.AddScoped<PostService>();
 
+        builder.Services.AddScoped<SubscribeService>();
+
         builder.Services.AddAuthentication(opt =>
         {
             opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
