@@ -55,9 +55,12 @@ namespace IvanGram.Controllers
         }
 
         [HttpGet]
-        public async Task<PostModel> GetPostByPostId(Guid PostId) 
-            => await _postService.GetPostByPostId(PostId);
-
+        public async Task<PostModel> GetPostByPostId(Guid PostId)
+        {
+            var currentUserId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            return await _postService.GetPostByPostId(PostId, currentUserId);
+        }
+            
         [HttpGet]
         public async Task<List<PostModel>> GetAllPosts(int skip = 0, int take = 10) 
             => await _postService.GetAllPosts(skip, take);
@@ -67,6 +70,13 @@ namespace IvanGram.Controllers
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
             return await _postService.GetUserFolowedUsersPosts(userId);
+        }
+
+        [HttpGet]
+        public async Task<List<PostModel>> GetUserPosts (Guid userId)
+        {
+            var currentUserId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            return await _postService.GetUserPosts(userId, currentUserId);
         }
 
         [HttpPost]

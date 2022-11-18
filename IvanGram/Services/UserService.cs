@@ -50,11 +50,6 @@ namespace IvanGram.Services
             return temp.Entity.Id;
         }
 
-        public async Task<List<UserModel>> GetUsers()
-        {
-            return await _context.Users.AsNoTracking().ProjectTo<UserModel>(_mapper.ConfigurationProvider).ToListAsync();
-        }
-
         public async Task<User> GetUserByCredention (string login, string password)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x=>x.Email.ToLower() == login.ToLower());
@@ -75,7 +70,23 @@ namespace IvanGram.Services
             return user;
         }
 
-        public async Task<UserModel> GetUser(Guid id)
+        public async Task<UserModel> GetUserModelById(Guid currentUserId, Guid userId)
+        {
+            var user = await GetUserById(userId);
+            var dbNote = await _context.Subscriptions
+                .Include(x=>x.SubscribeTo)
+                .Include(x=>x.Follower)
+                .Where(x => x.SubscribeTo.Id == userId)
+                .Where(x => x.Follower.Id == currentUserId)
+                .FirstOrDefaultAsync();
+            if ((dbNote != null) && dbNote.IsInBlackList)
+            {
+                throw new UserNotFoundException();
+            }
+            return _mapper.Map<UserModel>(user);
+        }
+
+        public async Task<UserModel> GetCurrentUser(Guid id)
         {
             var user = await GetUserById(id);
             return _mapper.Map<UserModel>(user);

@@ -35,14 +35,11 @@ namespace IvanGram.Controllers
         public async Task RegisterUser(CreateUserModel model) => await _userService.CreateUser(model);
 
         [HttpGet]
-        public async Task<List<UserModel>> GetUsers() => await _userService.GetUsers();
-
-        [HttpGet]
         public async Task<UserModel> GetCurrentUser()
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
             if (userId != default)
-                return await _userService.GetUser(userId);
+                return await _userService.GetCurrentUser(userId);
             else
                 throw new System.Exception("You are not authorized");
         }
@@ -81,6 +78,13 @@ namespace IvanGram.Controllers
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
             await _userService.SetProfilePrivate(userId, SetProfileClosed);
+        }
+
+        [HttpGet]
+        public async Task<UserModel> GetUserById(Guid userId)
+        {
+            var currentUserId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            return await _userService.GetUserModelById(currentUserId, userId);
         }
 
     }

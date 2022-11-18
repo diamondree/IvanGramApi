@@ -7,13 +7,13 @@ using IvanGram.Models.Post;
 using IvanGram.Models.PostComment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace IvanGram.Services
 {
     public class PostService : IDisposable
     {
         private readonly DataContext _context;
-        private readonly AttachService _attachService;
         private readonly IMapper _mapper;
         private Func<Guid, string?>? _linkContentGenerator;
         private Func<Guid, string?>? _linkAvatarGenerator;
@@ -24,14 +24,13 @@ namespace IvanGram.Services
             _linkContentGenerator = linkContentGenerator;
         }
 
-        public PostService (DataContext context, AttachService attachService, IMapper mapper)
+        public PostService (DataContext context, IMapper mapper)
         {
             _context = context;
-            _attachService = attachService;
             _mapper = mapper;
         }
 
-        public async Task<PostModel> GetPostByPostId(Guid postId)
+        public async Task<PostModel> GetPostByPostId(Guid postId, Guid currentUserId)
         {
             var post = await _context.Posts
                 .Include(x => x.Files)
@@ -41,6 +40,8 @@ namespace IvanGram.Services
 
             if (post == null)
                 throw new PostNotFoundException();
+
+            await CheckUsersRelationship(post.Author, currentUserId);
 
             return CreatePostModel(post);
         }
@@ -58,15 +59,23 @@ namespace IvanGram.Services
             return await GetPostModelList(posts);
         }
 
-        public async Task<List<PostModel>> GetUserPosts(Guid userId)
+        public async Task<List<PostModel>> GetUserPosts (Guid userId, Guid currentUserId)
         {
-            var posts = await _context.Posts
-                .Include(x => x.Author).ThenInclude(x => x.Avatar)
-                .Include(x => x.Files).AsNoTracking()
-                .Where(x => x.Author.Id == userId)
-                .ToListAsync();
+            var user = await _context.Users
+                .Include(x=>x.Posts)
+                .ThenInclude(x=>x.Files)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x=>x.Id == userId);
 
-            return await GetPostModelList(posts);
+            if (user == null)
+                throw new UserNotFoundException();
+
+            if (user.Posts == null)
+                throw new PostNotFoundException();
+
+            await CheckUsersRelationship(user, currentUserId);
+
+            return await GetPostModelList(user.Posts.ToList());
         }
 
         public async Task<List<PostModel>> GetUserFolowedUsersPosts (Guid userId)
@@ -82,9 +91,9 @@ namespace IvanGram.Services
 
             var posts = new List<PostModel>();
 
-            foreach (var subscribedTo in subscribedUsers)
+            foreach (var subscribedUser in subscribedUsers)
             {
-                var userPosts = await GetUserPosts(subscribedTo.SubscribeTo.Id);
+                var userPosts = await GetUserPosts(subscribedUser.SubscribeTo.Id);
                 posts.AddRange(userPosts);
             }
 
@@ -185,6 +194,32 @@ namespace IvanGram.Services
             }
 
             return Task.FromResult(postModelList);
+        }
+        private async Task<List<PostModel>> GetUserPosts(Guid userId)
+        {
+            var posts = await _context.Posts
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                .Include(x => x.Files).AsNoTracking()
+                .Where(x => x.Author.Id == userId)
+                .ToListAsync();
+
+            return await GetPostModelList(posts);
+        }
+
+        private async Task CheckUsersRelationship(User user, Guid currentUserId)
+        {
+            var dbNote = await _context.Subscriptions
+                .Include(x => x.SubscribeTo)
+                .AsNoTracking()
+                .Where(x => x.SubscribeTo.Id == user.Id)
+                .Where(x => x.Follower.Id == currentUserId)
+                .FirstOrDefaultAsync();
+
+            if ((dbNote == null) && user.IsPrivate)
+                throw new PostNotFoundException();
+
+            if ((dbNote != null) && (dbNote.IsInBlackList || !dbNote.IsAccepted))
+                throw new PostNotFoundException();
         }
 
         public void Dispose()
