@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc;
 using IvanGram.Models.Attach;
+using IvanGram.Exeptions;
 
 namespace IvanGram.Services
 {
@@ -34,13 +35,13 @@ namespace IvanGram.Services
             var fileinfo = new FileInfo(newPath);
             if (fileinfo.Exists)
             {
-                throw new Exception("file exist");
+                throw new System.Exception("file exist");
             }
             else
             {
                 if (fileinfo.Directory == null)
                 {
-                    throw new Exception("temp is null");
+                    throw new System.Exception("temp is null");
                 }
                 else
                 if (!fileinfo.Directory.Exists)
@@ -74,7 +75,7 @@ namespace IvanGram.Services
         {
             var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.Id == id);
             if (attach == null)
-                throw new Exception("File not found");
+                throw new Exeptions.FileNotFoundException();
             var attachModel = new AttachModel();
             attachModel = _mapper.Map<AttachModel>(attach);
             return attachModel;
@@ -85,7 +86,7 @@ namespace IvanGram.Services
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
 
             if (!tempFi.Exists)
-                throw new Exception("file not found");
+                throw new Exeptions.FileNotFoundException();
             else
             {
                 var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());

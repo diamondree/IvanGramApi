@@ -44,7 +44,7 @@ namespace IvanGram.Controllers
             if (userId != default)
                 return await _userService.GetUser(userId);
             else
-                throw new Exception("You are not authorized");
+                throw new System.Exception("You are not authorized");
         }
 
         [HttpPost]
@@ -65,7 +65,7 @@ namespace IvanGram.Controllers
                 await _userService.UploadUserAvatar(addUserAvatarModel);
             }
             else
-                throw new Exception("you are not authorized");
+                throw new System.Exception("you are not authorized");
         }
 
         [HttpGet]

@@ -51,7 +51,7 @@ namespace IvanGram.Controllers
                 await _userService.CreateUserPost(model, userId);
             }
             else
-                throw new Exception("You are not authorized");
+                throw new System.Exception("You are not authorized");
         }
 
         [HttpGet]
@@ -78,7 +78,7 @@ namespace IvanGram.Controllers
                 await _postService.CreatePostComment(userId, model);
             }
             else
-                throw new Exception("You are not authorized");
+                throw new System.Exception("You are not authorized");
         }
 
         [HttpGet]

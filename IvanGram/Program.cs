@@ -1,6 +1,7 @@
 using IvanGram;
 using IvanGram.Configs;
 using IvanGram.Middleware;
+using IvanGram.Middlewares;
 using IvanGram.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -129,6 +130,8 @@ internal class Program
         app.UseAuthorization();
 
         app.UseTokenValidator();
+
+        app.UseGlobalErrorWrapper();
 
         app.MapControllers();
 

@@ -5,6 +5,7 @@ using Common.Consts;
 using DAL;
 using DAL.Entities;
 using IvanGram.Configs;
+using IvanGram.Exeptions;
 using IvanGram.Models.Attach;
 using IvanGram.Models.Post;
 using IvanGram.Models.Token;
@@ -42,7 +43,7 @@ namespace IvanGram.Services
         public async Task<Guid> CreateUser(CreateUserModel model)
         {
             if (await CheckUserExists(model.Email))
-                throw new Exception("User exists");
+                throw new System.Exception("User exists");
             var DBUser = _mapper.Map<User>(model);
             var temp = await _context.Users.AddAsync(DBUser);
             await _context.SaveChangesAsync();
@@ -58,10 +59,10 @@ namespace IvanGram.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(x=>x.Email.ToLower() == login.ToLower());
             if (user == null)
-                throw new Exception("User not found");
+                throw new UserNotFoundException();
 
             if (!HashHelper.Verify(password, user.PasswordHash))
-                throw new Exception("Password is incorrect");
+                throw new System.Exception("Password is incorrect");
 
             return user;
         }
@@ -70,7 +71,7 @@ namespace IvanGram.Services
         {
             var user = await _context.Users.Include(x=>x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
-                throw new Exception("User not found");
+                throw new UserNotFoundException();
             return user;
         }
 
@@ -83,7 +84,7 @@ namespace IvanGram.Services
         private TokenModel GenerateTokens(UserSession userSession)
         {
             if (userSession.User == null)
-                throw new Exception("You are wizard. This exception cant be throwed. Go and check your magic abilities!!! ^_^");
+                throw new System.Exception("You are wizard. This exception cant be throwed. Go and check your magic abilities!!! ^_^");
 
             var DTNow = DateTime.Now;
 
@@ -141,7 +142,7 @@ namespace IvanGram.Services
                 var session = await _session.GetSessionByRefreshToken(refreshId);
 
                 if (!session.IsActive)
-                    throw new Exception("Session does not active");
+                    throw new System.Exception("Session does not active");
 
                 session.RefreshToken = Guid.NewGuid();
 
@@ -191,7 +192,7 @@ namespace IvanGram.Services
             var user = await GetUserById(userId);
             var attach = _mapper.Map<AttachModel>(user.Avatar);
             if (attach == null)
-                throw new Exception("User does not have avatar");
+                throw new System.Exception("User does not have avatar");
             return attach;
         }
 
@@ -222,7 +223,7 @@ namespace IvanGram.Services
                 }
                 else
                 {
-                    throw new Exception("File not found");
+                    throw new Exeptions.FileNotFoundException();
                 }
                 var post = new Post
                 {
@@ -244,7 +245,7 @@ namespace IvanGram.Services
         {
             var user = await GetUserById(userId);
             if (user.IsPrivate == setProfileClosed)
-                throw new Exception($"Your profile setting <<IsPrivate>> is already {setProfileClosed}");
+                throw new System.Exception($"Your profile setting <<IsPrivate>> is already {setProfileClosed}");
             user.IsPrivate = setProfileClosed;
             await _context.SaveChangesAsync();
         }

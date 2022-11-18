@@ -1,4 +1,5 @@
 ﻿using DAL;
+using IvanGram.Exeptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace IvanGram.Services
@@ -16,7 +17,7 @@ namespace IvanGram.Services
         {
             var session = await _context.UserSessions.FirstOrDefaultAsync(x => x.Id == id);
             if (session == null)
-                throw new Exception("Session does not exists");
+                throw new SessionNotFoundException();
             return session;
         }
 
@@ -24,7 +25,7 @@ namespace IvanGram.Services
         {
             var session = await _context.UserSessions.Include(x => x.User).FirstOrDefaultAsync(x => x.RefreshToken == id);
             if (session == null)
-                throw new Exception("Session does not exists");
+                throw new SessionNotFoundException();
             return session;
         }
 

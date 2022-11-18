@@ -2,6 +2,7 @@
 using DAL;
 using DAL.Entities;
 using IvanGram.Configs;
+using IvanGram.Exeption;
 using IvanGram.Models.Subscribe;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,7 @@ namespace IvanGram.Services
         public async Task SubscribeToUser(Guid subscribeToId, Guid followerId)
         {
             if (subscribeToId == followerId)
-                throw new Exception("You can`t subscribe yourself");
+                throw new System.Exception("You can`t subscribe yourself");
 
             var subscribeToUser = await _userService.GetUserById(subscribeToId);
             var followerUser = await _userService.GetUserById(followerId);
@@ -41,15 +42,15 @@ namespace IvanGram.Services
             if (dbNote != null)
             {
                 if (dbNote.IsInBlackList)
-                    throw new Exception("You are in black list, you cant subscribe");
+                    throw new BlackListException();
 
                 if (dbNote.IsActive)
                 {
                     if (dbNote.IsAccepted)
-                        throw new Exception("You are already subscribed");
+                        throw new System.Exception("You are already subscribed");
 
                     if (!dbNote.IsAccepted)
-                        throw new Exception("User has not accepted your request");
+                        throw new System.Exception("User has not accepted your request");
                 }
                 else
                 {
@@ -73,12 +74,12 @@ namespace IvanGram.Services
         public async Task UnscribeUser(Guid unscribeToId, Guid followerId)
         {
             if (unscribeToId == followerId)
-                throw new Exception("You can not unscribe yourself");
+                throw new System.Exception("You can not unscribe yourself");
             var unscribeToUser = await _userService.GetUserById(unscribeToId);
             var followerUser = await _userService.GetUserById(followerId);
             var dbNote = await GetSubscribeNoteByUsers(unscribeToUser, followerUser);
             if (dbNote == null || !dbNote.IsActive)
-                throw new Exception("You are not followed");
+                throw new System.Exception("You are not followed");
             else
             {
                 dbNote.IsActive = false;
@@ -90,7 +91,7 @@ namespace IvanGram.Services
         public async Task AcceptSubscribe(Guid subscribeToId, Guid followerId)
         {
             if (subscribeToId == followerId)
-                throw new Exception("You can`t accept yourself");
+                throw new System.Exception("You can`t accept yourself");
 
             var subscribeToUser = await _userService.GetUserById(subscribeToId);
             var followerUser = await _userService.GetUserById(followerId);
@@ -98,15 +99,15 @@ namespace IvanGram.Services
             var dbNote = await GetSubscribeNoteByUsers(subscribeToUser, followerUser);
 
             if (dbNote == null)
-                throw new Exception("Subscription note not found");
+                throw new System.Exception("Subscription note not found");
 
             if (dbNote.IsInBlackList)
-                throw new Exception("User is in your blacklist");
+                throw new System.Exception("User is in your blacklist");
 
             if (dbNote.IsActive)
             {
                 if (dbNote.IsAccepted)
-                    throw new Exception("You are already accepted this user");
+                    throw new System.Exception("You are already accepted this user");
                 else
                 {
                     dbNote.IsAccepted= true;
@@ -164,7 +165,7 @@ namespace IvanGram.Services
 
             var dbNote = await GetSubscribeNoteByUsers(AuthorContent, User);
             if (!dbNote.IsInBlackList)
-                throw new Exception("User is not in your black list");
+                throw new System.Exception("User is not in your black list");
             else
             {
                 dbNote.IsInBlackList = false;

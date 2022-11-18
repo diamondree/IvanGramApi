@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DAL;
 using DAL.Entities;
+using IvanGram.Exeptions;
 using IvanGram.Models.Attach;
 using IvanGram.Models.Post;
 using IvanGram.Models.PostComment;
@@ -39,7 +40,7 @@ namespace IvanGram.Services
                 .FirstOrDefaultAsync(x => x.Id == postId);
 
             if (post == null)
-                throw new Exception("Post not found");
+                throw new PostNotFoundException();
 
             return CreatePostModel(post);
         }
@@ -94,10 +95,10 @@ namespace IvanGram.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
             if (user == null)
-                throw new Exception("User does not exist");
+                throw new UserNotFoundException();
             var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == model.PostId);
             if (post == null)
-                throw new Exception("Post does not exist");
+                throw new PostNotFoundException();
             var comm = new PostComment
             {
                 Id = Guid.NewGuid(),
@@ -117,11 +118,11 @@ namespace IvanGram.Services
                 .FirstOrDefaultAsync(x => x.Id == postId);
 
             if (post == null)
-                throw new Exception("Post does not exists");
+                throw new PostNotFoundException();
             if (post.Comments == null)
-                throw new Exception("Post comments not found");
+                throw new PostCommentsNotFoundException();
             if (post.Comments.Count <= 0)
-                throw new Exception("There are not any comments in this post");
+                throw new System.Exception("There are not any comments in this post");
 
             var comments = new List<PostCommentModel>();
 
@@ -174,7 +175,7 @@ namespace IvanGram.Services
         private Task<List<PostModel>> GetPostModelList(List<Post> posts)
         {
             if (posts == null)
-                throw new Exception("Posts not found");
+                throw new PostNotFoundException();
 
             var postModelList = new List<PostModel>();
 
