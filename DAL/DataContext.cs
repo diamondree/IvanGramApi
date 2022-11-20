@@ -27,6 +27,12 @@ namespace DAL
 
             modelBuilder.Entity<PostFile>()
                 .ToTable(nameof(PostFiles));
+
+            modelBuilder.Entity<PostLike>()
+                .ToTable(nameof(PostLikes));
+
+            modelBuilder.Entity<PostCommentLike>()
+                .ToTable(nameof(CommentLikes));
         }
 
         public DbSet<User> Users => Set<User>();
@@ -37,5 +43,8 @@ namespace DAL
         public DbSet<PostComment> PostComments => Set<PostComment>();
         public DbSet<PostFile> PostFiles => Set<PostFile>();
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
+        public DbSet<Like> Likes => Set<Like>();
+        public DbSet<PostLike> PostLikes => Set<PostLike>();
+        public DbSet<PostCommentLike> CommentLikes => Set<PostCommentLike>();
     }
 }
