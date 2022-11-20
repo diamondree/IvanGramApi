@@ -94,5 +94,33 @@ namespace IvanGram.Controllers
         [HttpGet]
         public async Task<List<PostCommentModel>> GetPostComments(Guid PostId) 
             => await _postService.GetPostComments(PostId);
+
+        [HttpPost]
+        public async Task LikePost(Guid postId)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            await _postService.LikePost(postId, userId);
+        }
+
+        [HttpPost]
+        public async Task DislikePost(Guid postId)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            await _postService.DislikePost(postId, userId);
+        }
+
+        [HttpPost]
+        public async Task LikePostComment(Guid postCommentId)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            await _postService.LikePostComment(postCommentId, userId);
+        }
+
+        [HttpPost]
+        public async Task DislikePostComment(Guid postCommentId)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            await _postService.DislikePostComment(postCommentId, userId);
+        }
     }
 }

@@ -154,6 +154,131 @@ namespace IvanGram.Services
             return _mapper.Map<AttachModel>(res);
         }
 
+        public async Task LikePost (Guid postId, Guid userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            if (user == null)
+                throw new UserNotFoundException();
+
+            var dbNote = await _context.PostLikes
+                .Where(x => x.PostId == postId)
+                .Where(x => x.Author.Id == userId)
+                .FirstOrDefaultAsync();
+
+            if (dbNote == null)
+            {
+                var postLike = new PostLike
+                {
+                    PostId = postId,
+                    UpdatedAt = DateTime.UtcNow,
+                    Author = user
+                };
+
+                await _context.AddAsync(postLike);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                if (dbNote.IsActive)
+                    throw new System.Exception("You already liked this post");
+                else
+                {
+                    dbNote.IsActive = true;
+                    dbNote.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
+
+        public async Task DislikePost (Guid postId, Guid userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            if (user == null)
+                throw new UserNotFoundException();
+
+            var dbNote = await _context.PostLikes
+                .Where(x => x.PostId == postId)
+                .Where(x => x.Author.Id == userId)
+                .FirstOrDefaultAsync();
+
+            if (dbNote == null)
+            {
+                throw new System.Exception("You dont like this post");
+            }
+            else
+            {
+                if (dbNote.IsActive)
+                {
+                    dbNote.IsActive = false;
+                    dbNote.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
+                else
+                    throw new System.Exception("You dont like this post");
+            }
+        }
+
+        public async Task LikePostComment (Guid postCommentId, Guid userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            if (user == null)
+                throw new UserNotFoundException();
+
+            var dbNote = await _context.CommentLikes
+                .Where(x => x.PostCommentId == postCommentId)
+                .Where(x => x.Author.Id == userId)
+                .FirstOrDefaultAsync();
+
+            if (dbNote == null)
+            {
+                var postCommentLike = new PostCommentLike
+                {
+                    PostCommentId = postCommentId,
+                    UpdatedAt = DateTime.UtcNow,
+                    Author = user
+                };
+
+                await _context.AddAsync(postCommentLike);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                if (dbNote.IsActive)
+                    throw new System.Exception("You already liked this comment");
+                else
+                {
+                    dbNote.IsActive = true;
+                    dbNote.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
+
+        public async Task DislikePostComment(Guid postCommentId, Guid userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            if (user == null)
+                throw new UserNotFoundException();
+
+            var dbNote = await _context.CommentLikes
+                .Where(x => x.PostCommentId == postCommentId)
+                .Where(x => x.Author.Id == userId)
+                .FirstOrDefaultAsync();
+
+            if (dbNote == null)
+                throw new System.Exception("You dont like this post");
+            else
+            {
+                if (dbNote.IsActive)
+                {
+                    dbNote.IsActive = false;
+                    dbNote.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
+                else
+                    throw new System.Exception("You dont like this post");
+            }
+        }
 
         private string? GetAvatarLink(Guid userId)
             => _linkAvatarGenerator(userId);
