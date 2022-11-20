@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,5 +16,6 @@ namespace DAL.Entities
         public virtual User Author { get; set; } = null!;
         public virtual ICollection<PostFile> Files { get; set; } = null!;
         public virtual ICollection<PostComment>? Comments { get; set; }
+        public virtual ICollection<PostLike>? Likes { get; set; }
     }
 }

@@ -393,7 +393,7 @@ namespace IvanGram.Migrations
                         .IsRequired();
 
                     b.HasOne("DAL.Entities.PostComment", "PostComment")
-                        .WithMany()
+                        .WithMany("CommentLikes")
                         .HasForeignKey("PostCommentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -410,7 +410,7 @@ namespace IvanGram.Migrations
                         .IsRequired();
 
                     b.HasOne("DAL.Entities.Post", "Post")
-                        .WithMany()
+                        .WithMany("Likes")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -423,6 +423,13 @@ namespace IvanGram.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Files");
+
+                    b.Navigation("Likes");
+                });
+
+            modelBuilder.Entity("DAL.Entities.PostComment", b =>
+                {
+                    b.Navigation("CommentLikes");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>

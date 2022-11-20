@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IvanGram.Migrations
 {
     /// <inheritdoc />
-    public partial class AddLike : Migration
+    public partial class AddLikes : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
