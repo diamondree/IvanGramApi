@@ -35,10 +35,10 @@ namespace IvanGram.Controllers
         }
 
         [HttpGet]
-        public async Task<List<UnacceptedSubscribeModel>> GetMyUnacceptedSubscribers()
+        public List<UnacceptedSubscribeModel> GetMyUnacceptedSubscribers()
         {
             var subscribeToId = User.GetClaimValue<Guid>(ClaimNames.Id);
-            return await _subscribeService.GetMyUnacceptedSubscribers(subscribeToId);
+            return _subscribeService.GetMyUnacceptedSubscribers(subscribeToId);
         }
 
         [HttpPut]

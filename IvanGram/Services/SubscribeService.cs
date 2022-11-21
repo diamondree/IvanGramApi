@@ -61,11 +61,13 @@ namespace IvanGram.Services
 
             if (dbNote == null)
             {
-                var subscription = new Subscription();
-                subscription.IsActive = true;
-                subscription.SubscribedAt = DateTimeOffset.UtcNow;
-                subscription.SubscribeTo = subscribeToUser;
-                subscription.Follower = followerUser;
+                var subscription = new Subscription
+                {
+                    IsActive = true,
+                    SubscribedAt = DateTimeOffset.UtcNow,
+                    SubscribeTo = subscribeToUser,
+                    Follower = followerUser
+                };
                 await _context.AddAsync(subscription);
                 await _context.SaveChangesAsync();
             }
@@ -116,14 +118,16 @@ namespace IvanGram.Services
             }
         }
 
-        public async Task<List<UnacceptedSubscribeModel>> GetMyUnacceptedSubscribers (Guid subscribeToId)
+        public List<UnacceptedSubscribeModel> GetMyUnacceptedSubscribers (Guid subscribeToId)
         {
             var UnacceptedSubscribersModelList = new List<UnacceptedSubscribeModel>();
+
             var UnaccepterSubscribersList = _context.Subscriptions.Include(x=>x.Follower)
                 .Where(x => x.SubscribeTo.Id == subscribeToId)
                 .Where(x => x.IsActive == true)
                 .Where(x => x.IsAccepted == false)
                 .ToList();
+
             foreach (var UnaccepterSubscriber in UnaccepterSubscribersList)
             {
                 UnacceptedSubscribersModelList.Add(_mapper.Map<UnacceptedSubscribeModel>(UnaccepterSubscriber));
@@ -140,11 +144,13 @@ namespace IvanGram.Services
 
             if (dbNote == null)
             {
-                var subscription = new Subscription();
-                subscription.IsInBlackList = true;
-                subscription.SubscribedAt = DateTimeOffset.UtcNow;
-                subscription.SubscribeTo = AuthorContent;
-                subscription.Follower = User;
+                var subscription = new Subscription
+                {
+                    IsInBlackList = true,
+                    SubscribedAt = DateTimeOffset.UtcNow,
+                    SubscribeTo = AuthorContent,
+                    Follower = User
+                };
                 await _context.AddAsync(subscription);
                 await _context.SaveChangesAsync();
             }

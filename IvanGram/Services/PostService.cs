@@ -62,7 +62,7 @@ namespace IvanGram.Services
         public async Task<List<PostModel>> GetUserPosts (Guid userId, Guid currentUserId)
         {
             var user = await _context.Users
-                .Include(x=>x.Posts)
+                .Include(x=>x.Posts!)
                 .ThenInclude(x=>x.Files)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x=>x.Id == userId);
@@ -123,7 +123,7 @@ namespace IvanGram.Services
         public async Task<List<PostCommentModel>> GetPostComments (Guid postId)
         {
             var post = await _context.Posts
-                .Include(x => x.Comments).ThenInclude(x => x.Author).ThenInclude(x=>x.Avatar)
+                .Include(x => x.Comments!).ThenInclude(x => x.Author).ThenInclude(x=>x.Avatar)
                 .FirstOrDefaultAsync(x => x.Id == postId);
 
             if (post == null)
@@ -281,14 +281,14 @@ namespace IvanGram.Services
         }
 
         private string? GetAvatarLink(Guid userId)
-            => _linkAvatarGenerator(userId);
+            => _linkAvatarGenerator!(userId);
 
         private List<string>? GetAttachLink(List<AttachModel> models)
         {
             var res = new List<string>();
             foreach (var model in models)
             {
-                res.Add(_linkContentGenerator(model.Id));
+                res.Add(_linkContentGenerator!(model.Id)!);
             }
             return res;
         }
@@ -301,7 +301,7 @@ namespace IvanGram.Services
             opt.AfterMap((src, dest) =>
             {
                 dest.AuthorAvatar = GetAvatarLink(post.Author.Id);
-                dest.AttachesLinks = GetAttachLink(postAttachModelsList);
+                dest.AttachesLinks = GetAttachLink(postAttachModelsList)!;
             }));
             return postModel;
         }

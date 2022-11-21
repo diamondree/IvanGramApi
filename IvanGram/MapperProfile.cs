@@ -22,7 +22,11 @@ namespace IvanGram
                 .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => HashHelper.GetHash(src.Password)))
                 .ForMember(dest => dest.BirthDate, opt => opt.MapFrom(src => src.BirthDate.UtcDateTime));
 
-            CreateMap<DAL.Entities.User, UserModel>();
+            CreateMap<DAL.Entities.User, UserModel>()
+                .ForMember(dest => dest.PostsCount, opt => opt.MapFrom(src => src.Posts!.Count()))
+                .ForMember(dest => dest.FollowersCount, opt => opt.Ignore())
+                .ForMember(dest => dest.SubscribedToCount, opt => opt.Ignore())
+                .ForMember(dest => dest.AvatarLink, opt => opt.Ignore());
 
             CreateMap<DAL.Entities.UserAvatar, AttachModel>();
             CreateMap<DAL.Entities.PostFile, AttachModel>();

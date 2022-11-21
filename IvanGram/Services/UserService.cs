@@ -25,19 +25,22 @@ namespace IvanGram.Services
         private readonly AuthConfig _config;
         private readonly SessionService _session;
         private readonly AttachService _attachService;
+        private readonly PostService _postService;
+        private Func<Guid, string?>? _linkAvatarGenerator;
 
-        public UserService(IMapper mapper, DataContext context, IOptions<AuthConfig> config, SessionService session, AttachService attachService)
+        public void SetLinkGenerator(Func<Guid, string?> linkAvatarGenerator)
+        {
+            _linkAvatarGenerator = linkAvatarGenerator;
+        }
+
+        public UserService(IMapper mapper, DataContext context, IOptions<AuthConfig> config, SessionService session, AttachService attachService, PostService postService)
         {
             _mapper = mapper;
             _context = context;
             _config = config.Value;
             _session = session;
             _attachService = attachService;
-        }
-
-        private async Task<bool> CheckUserExists(string email)
-        {
-            return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
+            _postService = postService;
         }
 
         public async Task<Guid> CreateUser(CreateUserModel model)
@@ -64,7 +67,7 @@ namespace IvanGram.Services
 
         public async Task<User> GetUserById(Guid id)
         {
-            var user = await _context.Users.Include(x=>x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
+            var user = await _context.Users.Include(x=>x.Avatar).Include(x=>x.Posts).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
                 throw new UserNotFoundException();
             return user;
@@ -74,8 +77,6 @@ namespace IvanGram.Services
         {
             var user = await GetUserById(userId);
             var dbNote = await _context.Subscriptions
-                .Include(x=>x.SubscribeTo)
-                .Include(x=>x.Follower)
                 .Where(x => x.SubscribeTo.Id == userId)
                 .Where(x => x.Follower.Id == currentUserId)
                 .FirstOrDefaultAsync();
@@ -83,51 +84,13 @@ namespace IvanGram.Services
             {
                 throw new UserNotFoundException();
             }
-            return _mapper.Map<UserModel>(user);
+            return CreateUserModel(user);
         }
 
         public async Task<UserModel> GetCurrentUser(Guid id)
         {
             var user = await GetUserById(id);
-            return _mapper.Map<UserModel>(user);
-        }
-
-        private TokenModel GenerateTokens(UserSession userSession)
-        {
-            if (userSession.User == null)
-                throw new System.Exception("You are wizard. This exception cant be throwed. Go and check your magic abilities!!! ^_^");
-
-            var DTNow = DateTime.Now;
-
-            var acessToken = new JwtSecurityToken(
-                issuer: _config.Issuer,
-                audience: _config.Audience,
-                notBefore: DTNow,
-                claims: new Claim[]
-                {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, userSession.User.Name),
-                    new Claim(ClaimNames.SessionId, userSession.Id.ToString()),
-                    new Claim(ClaimNames.Id, userSession.User.Id.ToString())
-                },
-                expires: DateTime.Now.AddMinutes(_config.LifeTime),
-                signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
-                );
-
-            var encodedAcessToken = new JwtSecurityTokenHandler().WriteToken(acessToken);
-
-            var refreshToken = new JwtSecurityToken(
-                notBefore: DTNow,
-                claims: new Claim[]
-                {
-                    new Claim(ClaimNames.RefreshToken, userSession.RefreshToken.ToString())
-                },
-                expires: DateTime.Now.AddHours(_config.LifeTime),
-                signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
-                );
-
-            var encodedRefreshToken = new JwtSecurityTokenHandler().WriteToken(refreshToken);
-
-            return new TokenModel(encodedAcessToken, encodedRefreshToken);
+            return CreateUserModel(user);
         }
 
         public async Task<TokenModel> GetTokensByRefreshToken(string refreshToken)
@@ -259,6 +222,61 @@ namespace IvanGram.Services
                 throw new System.Exception($"Your profile setting <<IsPrivate>> is already {setProfileClosed}");
             user.IsPrivate = setProfileClosed;
             await _context.SaveChangesAsync();
+        }
+
+        private string? GetAvatarLink(Guid userId)
+            => _linkAvatarGenerator!(userId);
+
+        private TokenModel GenerateTokens(UserSession userSession)
+        {
+            if (userSession.User == null)
+                throw new System.Exception("You are wizard. This exception cant be throwed. Go and check your magic abilities!!! ^_^");
+
+            var DTNow = DateTime.Now;
+
+            var acessToken = new JwtSecurityToken(
+                issuer: _config.Issuer,
+                audience: _config.Audience,
+                notBefore: DTNow,
+                claims: new Claim[]
+                {
+                    new Claim(ClaimsIdentity.DefaultNameClaimType, userSession.User.Name),
+                    new Claim(ClaimNames.SessionId, userSession.Id.ToString()),
+                    new Claim(ClaimNames.Id, userSession.User.Id.ToString())
+                },
+                expires: DateTime.Now.AddMinutes(_config.LifeTime),
+                signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
+                );
+
+            var encodedAcessToken = new JwtSecurityTokenHandler().WriteToken(acessToken);
+
+            var refreshToken = new JwtSecurityToken(
+                notBefore: DTNow,
+                claims: new Claim[]
+                {
+                    new Claim(ClaimNames.RefreshToken, userSession.RefreshToken.ToString())
+                },
+                expires: DateTime.Now.AddHours(_config.LifeTime),
+                signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
+                );
+
+            var encodedRefreshToken = new JwtSecurityTokenHandler().WriteToken(refreshToken);
+
+            return new TokenModel(encodedAcessToken, encodedRefreshToken);
+        }
+
+        private UserModel CreateUserModel(User user)
+            => _mapper.Map<User, UserModel>(user, opt =>
+                opt.AfterMap((src, dest) =>
+                {
+                    dest.SubscribedToCount = _context.Subscriptions.Where(x => x.Follower.Id == user.Id).Count();
+                    dest.FollowersCount = _context.Subscriptions.Where(x => x.SubscribeTo.Id == user.Id).Count();
+                    dest.AvatarLink = GetAvatarLink(user.Id)!;
+                }));
+
+        private async Task<bool> CheckUserExists(string email)
+        {
+            return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
         public void Dispose()

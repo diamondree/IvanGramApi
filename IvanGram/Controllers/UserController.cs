@@ -27,7 +27,16 @@ namespace IvanGram.Controllers
         public UserController(UserService userService, AttachService attachService)
         {
             _userService = userService;
+            _userService.SetLinkGenerator(_linkAvatarGenerator);
             _attachService = attachService;
+        }
+
+        private string? _linkAvatarGenerator(Guid userId)
+        {
+            return Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
+            {
+                userId,
+            });
         }
 
         [HttpPost]
