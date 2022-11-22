@@ -34,12 +34,15 @@ namespace IvanGram
 
             CreateMap<DAL.Entities.PostComment, PostCommentModel>()
                 .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.Author.Id))
-                .ForMember(dest => dest.AvatarLink, opt => opt.Ignore());
+                .ForMember(dest => dest.AvatarLink, opt => opt.Ignore())
+                .ForMember(dest => dest.CommentLikeCount, opt => opt.Ignore());
 
             CreateMap<DAL.Entities.Post, PostModel>()
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author.Name))
                 .ForMember(dest => dest.AuthorAvatar, opt => opt.Ignore())
-                .ForMember(dest => dest.AttachesLinks, opt => opt.Ignore());
+                .ForMember(dest => dest.AttachesLinks, opt => opt.Ignore())
+                .ForMember(dest => dest.PostLikeCount, opt => opt.Ignore())
+                .ForMember(dest => dest.PostCommentCount, opt => opt.Ignore());
 
             CreateMap<DAL.Entities.Subscription, UnacceptedSubscribeModel>()
                 .ForMember(dest => dest.FollowerId, opt => opt.MapFrom(src => src.Follower.Id));

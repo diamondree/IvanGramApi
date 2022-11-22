@@ -140,6 +140,7 @@ namespace IvanGram.Services
                 comments.Add(_mapper.Map<PostComment, PostCommentModel>(comment, opt =>
                 opt.AfterMap((src, dest) =>
                 {
+                    dest.CommentLikeCount = _context.CommentLikes.Where(x => x.PostCommentId == comment.Id).Where(x=>x.IsActive == true).Count();
                     dest.AvatarLink = GetAvatarLink(comment.Author.Id);
                 })));
             }
@@ -302,6 +303,8 @@ namespace IvanGram.Services
             {
                 dest.AuthorAvatar = GetAvatarLink(post.Author.Id);
                 dest.AttachesLinks = GetAttachLink(postAttachModelsList)!;
+                dest.PostLikeCount = _context.PostLikes.Where(x => x.PostId == post.Id).Where(x => x.IsActive == true).Count();
+                dest.PostCommentCount = _context.PostComments.Where(x=>x.Post.Id == post.Id).Count();
             }));
             return postModel;
         }

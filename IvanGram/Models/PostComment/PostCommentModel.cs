@@ -8,5 +8,6 @@ namespace IvanGram.Models.PostComment
         public string Text { get; set; } = null!;
         public Guid AuthorId { get; set; }
         public string? AvatarLink { get; set; }
+        public int CommentLikeCount { get; set; }
     }
 }
