@@ -1,4 +1,4 @@
-﻿using DAL.Entities;
+﻿using IvanGram.Models.User;
 
 namespace IvanGram.Models.PostComment
 {
@@ -6,8 +6,8 @@ namespace IvanGram.Models.PostComment
     {
         public DateTimeOffset CreatedAt { get; set; }
         public string Text { get; set; } = null!;
-        public Guid AuthorId { get; set; }
-        public string? AvatarLink { get; set; }
+        public UserLigthModel Author { get; set; } = null!;
         public int CommentLikeCount { get; set; }
+        public bool IsLiked { get; set; } = false;
     }
 }

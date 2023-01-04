@@ -18,24 +18,20 @@ namespace IvanGram.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [ApiExplorerSettings(GroupName = "Api")]
     [Authorize]
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
         private readonly AttachService _attachService;
 
-        public UserController(UserService userService, AttachService attachService)
+        public UserController(UserService userService, AttachService attachService, LinkGeneratorService links)
         {
             _userService = userService;
-            _userService.SetLinkGenerator(_linkAvatarGenerator);
             _attachService = attachService;
-        }
-
-        private string? _linkAvatarGenerator(Guid userId)
-        {
-            return Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
+            links.LinkAvatarGenerator = x => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
             {
-                userId,
+                userId = x.Id,
             });
         }
 

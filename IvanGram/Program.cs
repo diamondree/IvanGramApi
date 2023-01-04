@@ -1,5 +1,5 @@
-using IvanGram;
 using IvanGram.Configs;
+using IvanGram.Mapper;
 using IvanGram.Middleware;
 using IvanGram.Middlewares;
 using IvanGram.Services;
@@ -38,21 +38,24 @@ internal class Program
 
             cfg.AddSecurityRequirement(new OpenApiSecurityRequirement()
             {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = JwtBearerDefaults.AuthenticationScheme,
-                },
-                Scheme = "oauth2",
-                Name = JwtBearerDefaults.AuthenticationScheme,
-                In = ParameterLocation.Header,
-            },
-            new List<string>()
-        }
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = JwtBearerDefaults.AuthenticationScheme,
+                        },
+                        Scheme = "oauth2",
+                        Name = JwtBearerDefaults.AuthenticationScheme,
+                        In = ParameterLocation.Header,
+                    },
+                    new List<string>()
+                }
             });
+
+            cfg.SwaggerDoc("Auth", new OpenApiInfo { Title = "Auth" });
+            cfg.SwaggerDoc("Api", new OpenApiInfo { Title = "Api" });
         });
 
         builder.Services.AddDbContext<DAL.DataContext>(options =>
@@ -71,6 +74,8 @@ internal class Program
         builder.Services.AddScoped<PostService>();
 
         builder.Services.AddScoped<SubscribeService>();
+
+        builder.Services.AddScoped<LinkGeneratorService>();
 
         builder.Services.AddAuthentication(opt =>
         {
@@ -120,7 +125,11 @@ internal class Program
         //if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI( c =>
+            {
+                c.SwaggerEndpoint("Api/swagger.json", "Api");
+                c.SwaggerEndpoint("Auth/swagger.json", "Auth");
+            });
         }
 
         app.UseHttpsRedirection();

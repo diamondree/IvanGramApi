@@ -5,9 +5,8 @@ using IvanGram.Exeptions;
 using IvanGram.Models.Attach;
 using IvanGram.Models.Post;
 using IvanGram.Models.PostComment;
-using Microsoft.AspNetCore.Mvc;
+using IvanGram.Models.User;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 
 namespace IvanGram.Services
 {
@@ -15,14 +14,6 @@ namespace IvanGram.Services
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
-        private Func<Guid, string?>? _linkContentGenerator;
-        private Func<Guid, string?>? _linkAvatarGenerator;
-
-        public void SetLinkGenerator(Func<Guid, string?> linkContentGenerator, Func<Guid, string?> linkAvatarGenerator)
-        {
-            _linkAvatarGenerator = linkAvatarGenerator;
-            _linkContentGenerator = linkContentGenerator;
-        }
 
         public PostService (DataContext context, IMapper mapper)
         {
@@ -43,29 +34,34 @@ namespace IvanGram.Services
 
             await CheckUsersRelationship(post.Author, currentUserId);
 
-            return CreatePostModel(post);
+            return CreatePostModel(post, currentUserId);
         }
         
-        public async Task<List<PostModel>> GetAllPosts (int skip, int take)
+        public async Task<List<PostModel>> GetAllPosts (int skip, int take, Guid currentUserId)
         {
             var posts = await _context.Posts
                 .Include(x => x.Author).ThenInclude(x => x.Avatar)
                 .Include(x => x.Files)
+                .Include(x=>x.Likes)
+                .Include(x=>x.Comments)
                 .AsNoTracking()
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip(skip).Take(take)
                 .ToListAsync();
             
-            return await GetPostModelList(posts);
+            return await GetPostModelList(posts, currentUserId);
         }
 
         public async Task<List<PostModel>> GetUserPosts (Guid userId, Guid currentUserId)
         {
             var user = await _context.Users
-                .Include(x=>x.Posts!)
-                .ThenInclude(x=>x.Files)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x=>x.Id == userId);
+                .FirstOrDefaultAsync(x => x.Id == userId);
+            var posts = _context.Posts
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                .Include(x => x.Comments)
+                .Include(x => x.Likes)
+                .Include(x => x.Files)
+                .Where(x => x.Author.Id == userId);
 
             if (user == null)
                 throw new UserNotFoundException();
@@ -75,7 +71,7 @@ namespace IvanGram.Services
 
             await CheckUsersRelationship(user, currentUserId);
 
-            return await GetPostModelList(user.Posts.ToList());
+            return await GetPostModelList(posts.ToList(), currentUserId);
         }
 
         public async Task<List<PostModel>> GetUserFolowedUsersPosts (Guid userId)
@@ -93,7 +89,7 @@ namespace IvanGram.Services
 
             foreach (var subscribedUser in subscribedUsers)
             {
-                var userPosts = await GetUserPosts(subscribedUser.SubscribeTo.Id);
+                var userPosts = await GetUserPosts(subscribedUser.SubscribeTo.Id, userId);
                 posts.AddRange(userPosts);
             }
 
@@ -120,7 +116,7 @@ namespace IvanGram.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<PostCommentModel>> GetPostComments (Guid postId)
+        public async Task<List<PostCommentModel>> GetPostComments (Guid postId, Guid currentUserId)
         {
             var post = await _context.Posts
                 .Include(x => x.Comments!).ThenInclude(x => x.Author).ThenInclude(x=>x.Avatar)
@@ -137,11 +133,18 @@ namespace IvanGram.Services
 
             foreach (var comment in post.Comments)
             {
+                var commentLikes = _context.CommentLikes
+                    .Include(x=>x.Author)
+                    .Where(x => x.PostCommentId == comment.Id)
+                    .Where(x => x.IsActive == true)
+                    .AsNoTracking();
+
                 comments.Add(_mapper.Map<PostComment, PostCommentModel>(comment, opt =>
                 opt.AfterMap((src, dest) =>
                 {
-                    dest.CommentLikeCount = _context.CommentLikes.Where(x => x.PostCommentId == comment.Id).Where(x=>x.IsActive == true).Count();
-                    dest.AvatarLink = GetAvatarLink(comment.Author.Id);
+                    dest.CommentLikeCount = commentLikes.Count();
+                    dest.IsLiked = commentLikes.Any(x => x.Author.Id == currentUserId);
+                    dest.Author = CreateUserLigthModel(comment.Author);
                 })));
             }
 
@@ -281,35 +284,26 @@ namespace IvanGram.Services
             }
         }
 
-        private string? GetAvatarLink(Guid userId)
-            => _linkAvatarGenerator!(userId);
-
-        private List<string>? GetAttachLink(List<AttachModel> models)
+        private PostModel CreatePostModel(Post post, Guid userId)
         {
-            var res = new List<string>();
-            foreach (var model in models)
-            {
-                res.Add(_linkContentGenerator!(model.Id)!);
-            }
-            return res;
-        }
+            var postLikes = _context.PostLikes.Include(x=>x.Author)
+                .Where(x => x.PostId == post.Id)
+                .Where(x => x.IsActive == true)
+                .AsNoTracking();
 
-        private PostModel CreatePostModel(Post post)
-        {
-            var postAttachModelsList = _mapper.Map<List<AttachModel>>(post.Files);
-
-            var postModel = _mapper.Map<Post, PostModel>(post, opt =>
+            return _mapper.Map<Post, PostModel>(post, opt =>
             opt.AfterMap((src, dest) =>
             {
-                dest.AuthorAvatar = GetAvatarLink(post.Author.Id);
-                dest.AttachesLinks = GetAttachLink(postAttachModelsList)!;
-                dest.PostLikeCount = _context.PostLikes.Where(x => x.PostId == post.Id).Where(x => x.IsActive == true).Count();
-                dest.PostCommentCount = _context.PostComments.Where(x=>x.Post.Id == post.Id).Count();
+                dest.PostLikeCount = postLikes.Count();
+                dest.IsLiked = postLikes.Where(x => x.Author.Id == userId).Any();
             }));
-            return postModel;
         }
 
-        private Task<List<PostModel>> GetPostModelList(List<Post> posts)
+
+        private UserLigthModel CreateUserLigthModel(User user)
+            => _mapper.Map<UserLigthModel>(user);
+
+        private Task<List<PostModel>> GetPostModelList(List<Post> posts, Guid currentUserId)
         {
             if (posts == null)
                 throw new PostNotFoundException();
@@ -318,20 +312,10 @@ namespace IvanGram.Services
 
             foreach (var post in posts)
             {
-                postModelList.Add(CreatePostModel(post));
+                postModelList.Add(CreatePostModel(post, currentUserId));
             }
 
             return Task.FromResult(postModelList);
-        }
-        private async Task<List<PostModel>> GetUserPosts(Guid userId)
-        {
-            var posts = await _context.Posts
-                .Include(x => x.Author).ThenInclude(x => x.Avatar)
-                .Include(x => x.Files).AsNoTracking()
-                .Where(x => x.Author.Id == userId)
-                .ToListAsync();
-
-            return await GetPostModelList(posts);
         }
 
         private async Task CheckUsersRelationship(User user, Guid currentUserId)

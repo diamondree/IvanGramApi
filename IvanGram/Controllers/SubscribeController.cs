@@ -10,6 +10,7 @@ namespace IvanGram.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [ApiExplorerSettings(GroupName = "Api")]
     [Authorize]
     public class SubscribeController : ControllerBase
     {

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Common;
 using Common.Consts;
 using DAL;
@@ -271,7 +270,6 @@ namespace IvanGram.Services
                 {
                     dest.SubscribedToCount = _context.Subscriptions.Where(x => x.Follower.Id == user.Id).Count();
                     dest.FollowersCount = _context.Subscriptions.Where(x => x.SubscribeTo.Id == user.Id).Count();
-                    dest.AvatarLink = GetAvatarLink(user.Id)!;
                 }));
 
         private async Task<bool> CheckUserExists(string email)

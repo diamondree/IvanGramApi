@@ -13,4 +13,11 @@ namespace IvanGram.Models.User
         public int SubscribedToCount { get; set; }
         public int PostsCount { get; set; }
     }
+
+    public class UserLigthModel
+    {
+        public Guid Id { get; set; }
+        public string? AvatarLink { get; set; }
+        public string Name { get; set; } = null!;
+    }
 }

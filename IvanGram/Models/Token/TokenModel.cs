@@ -2,13 +2,13 @@
 {
     public class TokenModel
     {
-        public string AcessToken { get; set; }
-        public string RefershToken { get; set; }
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
 
         public TokenModel(string accessToken, string refreshToken)
         {
-            AcessToken = accessToken;
-            RefershToken = refreshToken;
+            AccessToken = accessToken;
+            RefreshToken = refreshToken;
         }
     }
 }

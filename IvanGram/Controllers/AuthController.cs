@@ -6,6 +6,7 @@ namespace IvanGram.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [ApiExplorerSettings(GroupName = "Auth")]
     public class AuthController : ControllerBase
     {
         private readonly UserService _userService;

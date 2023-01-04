@@ -10,9 +10,9 @@ namespace DAL.Entities
     public class User
     {
         public Guid Id { get; set; }
-        public string Name { get; set; } = "Empty";
-        public string Email { get; set; } = "Empty";
-        public string PasswordHash { get; set; } = "Empty";
+        public string Name { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
         public DateTimeOffset BirthDate { get; set; }
         public bool IsPrivate { get; set; } = false;
 
